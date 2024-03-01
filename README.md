@@ -31,5 +31,3 @@ I am happy to receive any comments(if any) related to SCT. <br/>
 ## How can you use SCT ??
 
 
-
-
