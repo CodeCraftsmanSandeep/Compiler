@@ -1,5 +1,5 @@
 # Compiler
-This repositry contains compiler I built from scratch. Here after the compiler is called SCT(Simple compiler tool).<br/>
+This repositry contains compiler I built from scratch. Here after the compiler is called SCT(Simple Compiler Tool).<br/>
 
 Synopsis <br/>
 1) What language does SCT support (language specification, constructs) ??
