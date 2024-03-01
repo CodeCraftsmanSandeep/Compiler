@@ -7,7 +7,7 @@ As part of this phase, the code are written to support the following the followi
 6) Current version allow expressions as statement (meaning expression TERMINATOR). (Although there will be no change in neither output nor any variable value)
 
 Ouptut:
-1) The following errors are reported:(if any)
+1) The following errors are reported:(if any) <br/>
 	a) Compilation error	: Syntax error.
 	b) Compilation error	: Variable declared multiple times.
 	c) Compilation error	: Accesing undeclared variable.
