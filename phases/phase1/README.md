@@ -8,12 +8,12 @@ As part of this phase, the code are written to support the following the followi
 
 Ouptut:
 1) The following errors are reported:(if any) <br/>
-	a) Compilation error	: Syntax error.
-	b) Compilation error	: Variable declared multiple times.
-	c) Compilation error	: Accesing undeclared variable.
-	d) Compilation error	: Maximum limit crossed in symbol table. (Motto to add this error is to exhibit that the control we have to allow a program to compile :) ).
-	e) Runtime error	: Division by zero.
-2) If there are no errors then:
-	a) All the contents relevant to print statement are printed, then
-	b) Symbol table entries are printed, then
-	c) Sequence of statements are printed. (Inorder traversal of abstract syntax tree (AST) for every expression is printed.)
+	a) Compilation error	: Syntax error. <br/>
+	b) Compilation error	: Variable declared multiple times. <br/>
+	c) Compilation error	: Accesing undeclared variable. <br/>
+	d) Compilation error	: Maximum limit crossed in symbol table. (Motto to add this error is that we can throw error when memory usage is exceeded some limit ). <br/>
+	e) Runtime error	: Division by zero. <br/>
+2) If there are no errors then: <br/>
+	a) All the contents relevant to print statement are printed, then <br/>
+	b) Symbol table entries are printed, then <br/>
+	c) Sequence of statements are printed. (Inorder traversal of abstract syntax tree (AST) for every expression is printed.) <br/>
