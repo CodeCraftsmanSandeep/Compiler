@@ -2,5 +2,9 @@ begindecl
   integer a, b, c;
 enddecl
 
-printSymbolTable();
 a = 19;
+a + b * c;
+
+
+;
+

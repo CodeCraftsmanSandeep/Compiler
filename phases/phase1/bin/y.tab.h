@@ -35,8 +35,8 @@
    especially those whose name start with YY_ or yy_.  They are
    private implementation details that can be changed or removed.  */
 
-#ifndef YY_YY_Y_TAB_H_INCLUDED
-# define YY_YY_Y_TAB_H_INCLUDED
+#ifndef YY_YY_BIN_Y_TAB_H_INCLUDED
+# define YY_YY_BIN_Y_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -103,12 +103,12 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 19 "compiler.y"
 
 	int int_value;				/* int_value */
 	struct symbol_table* symp;		/* symbol table pointer */
+	struct syntax_tree_node* syntax_tree;	/* syntax tree pointer */
+	struct node* seq;			/* sequence pointer */
 
-#line 112 "y.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
@@ -123,4 +123,4 @@ extern YYSTYPE yylval;
 int yyparse (void);
 
 
-#endif /* !YY_YY_Y_TAB_H_INCLUDED  */
+#endif /* !YY_YY_BIN_Y_TAB_H_INCLUDED  */

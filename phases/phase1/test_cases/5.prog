@@ -1,5 +1,7 @@
 begindecl 
-  integer a, b, c;
+  integer b;
+  integer a;
+  integer c;
 enddecl
 
 a = 10;

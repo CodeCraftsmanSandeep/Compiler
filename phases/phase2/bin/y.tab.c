@@ -71,6 +71,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include "symbol_table.h"
+
 struct symbol_table;
 extern int yylex();
 void yyerror(char*);
@@ -538,10 +539,10 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int8 yyrline[] =
 {
-       0,    48,    48,    49,    52,    55,    58,    62,    63,    66,
-      67,    70,    71,    74,    77,    78,    79,    80,    81,    82,
-      85,    88,    89,    90,    91,    99,   100,   101,   104,   107,
-     108
+       0,    49,    49,    50,    53,    56,    59,    63,    64,    67,
+      68,    71,    72,    75,    78,    79,    80,    81,    82,    83,
+      86,    89,    90,    91,    92,   100,   101,   102,   105,   108,
+     109
 };
 #endif
 
@@ -1428,6 +1429,7 @@ int main(int argc, char* argv[]){
 		yyin = fp;
 	}
 	yyparse();
+	
 	return 0;
 }	
 

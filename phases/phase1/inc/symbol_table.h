@@ -94,17 +94,11 @@ void printSymbolTable(){
 	printf("\n--Symbol table entries--\n");	
 	struct symbol_table* trav = head;
 	while(trav != NULL){
-		if(trav->isInitialized)	printf("varaible '%s': Unintialized\n", trav->name);
+		if(!trav->isInitialized)	printf("varaible '%s': Unintialized\n", trav->name);
 		else printf("variable '%s': %d\n", trav->name, trav->value);
 		trav = trav->next;
 	}
 	printf("--End of symbol table entries--\n");
 	return;
 }
-
-
-
-
-
-
 

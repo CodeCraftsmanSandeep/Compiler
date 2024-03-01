@@ -1,7 +1,8 @@
+	INCLUDE=-I./inc/
 all :
-	yacc -d	compiler.y
-	lex compiler.l 
-	gcc lex.yy.c y.tab.c -ll -lm -o a.out
-
+	yacc -o bin/y.tab.c -d src/compiler.y -ll 
+	lex -o bin/lex.yy.c src/compiler.l 
+	gcc ${INCLUDE} bin/lex.yy.c bin/y.tab.c -ll -lm -o bin/compiler.out
+	
 clean:
-	rm lex.yy.c y.tab.c y.tab.h a.out
+	rm bin/lex.yy.c bin/y.tab.c bin/y.tab.h bin/compiler.out
