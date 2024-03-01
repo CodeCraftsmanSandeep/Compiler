@@ -10,10 +10,10 @@ Synopsis <br/>
 
 The compiler is built in several phases which I built final compiler SCT.  <br/>
 Have a look on phases : <br/>
-	1) phase1 <br/>
-	2) phase2 <br/>
-	3) phase3 <br/>
-	4) 
+	1) ![phase1](phases/phase1) <br/>
+	2) ![phase2](phases/phase2) <br/>
+	3) ![phase3](phases/phase3) <br/>
+	4) 	
 	
 Each phase contains a detailed description of the constructs supported in respective readme files, test cases to evaluate, source code, include files, Makefile. The description is not repeated here to avoid redundancy which may lead to inconsistency (many times). <br/>
 
