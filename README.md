@@ -20,15 +20,15 @@ Each phase contains a detailed description of the constructs supported in respec
 
 I am happy to receive any comments(if any) related to SCT. <br/>
 
-# What language does SCT support (language specification, constructs) ??
+## What language does SCT support (language specification, constructs) ??
 
 
-# What SCT does not support ??
+## What SCT does not support ??
 
 
-# What are the possible exentsions to SCT ??
+## What are the possible exentsions to SCT ??
 
-# How can you use SCT ??
+## How can you use SCT ??
 
 
 
