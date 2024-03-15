@@ -1,4 +1,4 @@
-INCLUDE=-I./include/
+	INCLUDE=-I./inc/
 all :
 	yacc -o bin/y.tab.c -d src/compiler.y -ll 
 	lex -o bin/lex.yy.c src/compiler.l 

@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <stdbool.h>
+
 extern int lineno;
 extern char error_string[];
 extern void yyerror(char*);
@@ -23,6 +24,7 @@ int curr_entries = 0;
 struct symbol_table{
     char* name;
     int value;
+    bool isInitialized;
     struct symbol_table* next;
 };
 struct symbol_table* head = NULL;
@@ -31,6 +33,7 @@ struct symbol_table* allot_entry(char* name){
 	struct symbol_table* curr = (struct symbol_table*)malloc(sizeof(struct symbol_table));
 	curr->name = strdup(name);
 	curr->value = 0;
+	curr->isInitialized = false;
 	curr->next = NULL;
 	return curr;
 }
@@ -80,5 +83,22 @@ struct symbol_table* lookup(char* name){
 
      sprintf(error_string, "Compilation error: Varaible '%s' is not declared", name);
      yyerror(error_string);
+}
+
+
+void printSymbolTable(){
+	if(head == NULL){
+		printf("\nEmpty symbol table\n");
+		return ;
+	}
+	printf("\n--Symbol table entries--\n");	
+	struct symbol_table* trav = head;
+	while(trav != NULL){
+		if(!trav->isInitialized)	printf("varaible '%s': Unintialized\n", trav->name);
+		else printf("variable '%s': %d\n", trav->name, trav->value);
+		trav = trav->next;
+	}
+	printf("--End of symbol table entries--\n");
+	return;
 }
 

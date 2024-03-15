@@ -66,12 +66,7 @@ extern int yydebug;
     RETURN = 267,                  /* RETURN  */
     IF = 268,                      /* IF  */
     ELSE = 269,                    /* ELSE  */
-    INCLUDE = 270,                 /* INCLUDE  */
-    ISEQUAL = 271,                 /* ISEQUAL  */
-    ISNOTEQUAL = 272,              /* ISNOTEQUAL  */
-    PLUSPLUS = 273,                /* PLUSPLUS  */
-    MINUSMINUS = 274,              /* MINUSMINUS  */
-    UMINUS = 275                   /* UMINUS  */
+    UMINUS = 270                   /* UMINUS  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -92,20 +87,17 @@ extern int yydebug;
 #define RETURN 267
 #define IF 268
 #define ELSE 269
-#define INCLUDE 270
-#define ISEQUAL 271
-#define ISNOTEQUAL 272
-#define PLUSPLUS 273
-#define MINUSMINUS 274
-#define UMINUS 275
+#define UMINUS 270
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
 
-	int int_value;				/* int_value */
-	struct symbol_table* symp;		/* symbol table pointer */
+	int int_value;							/* int_value */
+	struct symbol_table* symp;				/* symbol table pointer */
+	struct syntax_tree_node* syntax_tree;	/* syntax tree pointer */
+	struct node* seq;						/* sequence pointer */
 
 
 };
