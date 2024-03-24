@@ -70,8 +70,33 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include "symbol_table.h"
-#include "syntax_tree.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stdarg.h>
+
+enum class expression_node_type{
+	VAR,
+	ARRAY_LOC,
+	NUM,
+	UNARY_MINUS,
+	PLUS,  /* add operator */
+	MINUS,
+	MUL,
+	DIV,
+	GT,
+	LT,
+	GTEQ,
+	LTEQ,
+	EQEQ, 	/* '==' is equal to  */
+	NTEQ,  	/* !=  is not equal to */
+	ASSIGN	 	/* '=' assignment */
+};
+
+#include "symbol_table.hpp"
+#include "expression_tree.hpp"
+
+#include "sequence.hpp"
+extern struct block* allot_block();
 
 struct symbol_table;
 extern int yylex();
@@ -79,25 +104,15 @@ void yyerror(char*);
 extern char* yytext;
 extern FILE* yyin;
 int lineno = 1;
-bool DECLARATION_PHASE = false;
 char error_string[100];
 
-enum operator {
-	PLUS,							/* Binary operator: Addition (+)   						*/
-	MINUS,							/* Binary operator: Subtraction (-) 						*/
-	DIV,							/* Binary operator: Division (/)		 					*/
-	MUL,							/* Binary operator: Multiplication (*) 					*/
-	MOD,							/* Binary operator: Modular (%) 							*/
-	GREATER_THAN,					/* Binary operator: Greater than (>) 					*/
-	GREATER_THAN_OR_EQUAL_TO,  		/* Binary operator: Greater than (or) equal to (>=) 	*/
-	LESS_THAN,						/* Binary operator: Less than(<) 						*/
-	LESS_THAN_OR_EQUAL_TO,			/* Binary operator: Less than (or) equal to (<=) 	*/
-	EQUAL_EQUAL,					/* Binary operator: Isequal (==) 	*/
-	NOT_EQUAL,						/* Binary operator: Isnotequal (!=) 	*/
-	// UMINUS,                      /* Unary operator: unary minus (-) 	*/
-	// UPLUS,
-	EQUAL							/* Binary operator: assignment operator */
-};
+// extern enum class statement_type;
+// extern enum 	 declaration_type;	
+
+// extern struct block;
+
+struct block* root = allot_block();
+
 
 
 # ifndef YY_CAST
@@ -130,40 +145,44 @@ enum yysymbol_kind_t
   YYSYMBOL_YYerror = 1,                    /* error  */
   YYSYMBOL_YYUNDEF = 2,                    /* "invalid token"  */
   YYSYMBOL_ID = 3,                         /* ID  */
-  YYSYMBOL_INT = 4,                        /* INT  */
-  YYSYMBOL_INT_NUMBER = 5,                 /* INT_NUMBER  */
+  YYSYMBOL_INT_NUMBER = 4,                 /* INT_NUMBER  */
+  YYSYMBOL_INT = 5,                        /* INT  */
   YYSYMBOL_BEGIN_DECL = 6,                 /* BEGIN_DECL  */
   YYSYMBOL_END_DECL = 7,                   /* END_DECL  */
-  YYSYMBOL_TERMINATOR = 8,                 /* TERMINATOR  */
-  YYSYMBOL_PRINT_STATEMENT = 9,            /* PRINT_STATEMENT  */
-  YYSYMBOL_DOUBLE = 10,                    /* DOUBLE  */
-  YYSYMBOL_DOUBLE_NUMBER = 11,             /* DOUBLE_NUMBER  */
-  YYSYMBOL_RETURN = 12,                    /* RETURN  */
-  YYSYMBOL_IF = 13,                        /* IF  */
-  YYSYMBOL_ELSE = 14,                      /* ELSE  */
-  YYSYMBOL_15_ = 15,                       /* '+'  */
-  YYSYMBOL_16_ = 16,                       /* '-'  */
-  YYSYMBOL_17_ = 17,                       /* '*'  */
-  YYSYMBOL_18_ = 18,                       /* '/'  */
-  YYSYMBOL_UMINUS = 19,                    /* UMINUS  */
-  YYSYMBOL_20_ = 20,                       /* ','  */
-  YYSYMBOL_21_ = 21,                       /* '='  */
-  YYSYMBOL_22_ = 22,                       /* '('  */
-  YYSYMBOL_23_ = 23,                       /* ')'  */
-  YYSYMBOL_YYACCEPT = 24,                  /* $accept  */
-  YYSYMBOL_program = 25,                   /* program  */
-  YYSYMBOL_declaration_block = 26,         /* declaration_block  */
-  YYSYMBOL_begin = 27,                     /* begin  */
-  YYSYMBOL_end = 28,                       /* end  */
-  YYSYMBOL_declarations = 29,              /* declarations  */
-  YYSYMBOL_declaration = 30,               /* declaration  */
-  YYSYMBOL_remaining = 31,                 /* remaining  */
-  YYSYMBOL_DATATYPE = 32,                  /* DATATYPE  */
-  YYSYMBOL_body = 33,                      /* body  */
-  YYSYMBOL_assignment = 34,                /* assignment  */
-  YYSYMBOL_expression = 35,                /* expression  */
-  YYSYMBOL_print_statement = 36,           /* print_statement  */
-  YYSYMBOL_values = 37                     /* values  */
+  YYSYMBOL_BEGIN_BODY = 8,                 /* BEGIN_BODY  */
+  YYSYMBOL_END_BODY = 9,                   /* END_BODY  */
+  YYSYMBOL_TERMINATOR = 10,                /* TERMINATOR  */
+  YYSYMBOL_PRINT_STATEMENT = 11,           /* PRINT_STATEMENT  */
+  YYSYMBOL_IF = 12,                        /* IF  */
+  YYSYMBOL_ELSE = 13,                      /* ELSE  */
+  YYSYMBOL_FOR = 14,                       /* FOR  */
+  YYSYMBOL_BREAK = 15,                     /* BREAK  */
+  YYSYMBOL_CONTINUE = 16,                  /* CONTINUE  */
+  YYSYMBOL_GREATER_THAN = 17,              /* GREATER_THAN  */
+  YYSYMBOL_GREATER_THAN_OR_EQUAL_TO = 18,  /* GREATER_THAN_OR_EQUAL_TO  */
+  YYSYMBOL_LESS_THAN = 19,                 /* LESS_THAN  */
+  YYSYMBOL_LESS_THAN_OR_EQUAL_TO = 20,     /* LESS_THAN_OR_EQUAL_TO  */
+  YYSYMBOL_IS_EQUAL = 21,                  /* IS_EQUAL  */
+  YYSYMBOL_IS_NOT_EQUAL = 22,              /* IS_NOT_EQUAL  */
+  YYSYMBOL_23_ = 23,                       /* '='  */
+  YYSYMBOL_24_ = 24,                       /* '+'  */
+  YYSYMBOL_25_ = 25,                       /* '-'  */
+  YYSYMBOL_26_ = 26,                       /* '*'  */
+  YYSYMBOL_27_ = 27,                       /* '/'  */
+  YYSYMBOL_UMINUS = 28,                    /* UMINUS  */
+  YYSYMBOL_29_ = 29,                       /* ','  */
+  YYSYMBOL_30_ = 30,                       /* '['  */
+  YYSYMBOL_31_ = 31,                       /* ']'  */
+  YYSYMBOL_32_ = 32,                       /* '('  */
+  YYSYMBOL_33_ = 33,                       /* ')'  */
+  YYSYMBOL_34_ = 34,                       /* '{'  */
+  YYSYMBOL_35_ = 35,                       /* '}'  */
+  YYSYMBOL_YYACCEPT = 36,                  /* $accept  */
+  YYSYMBOL_program = 37,                   /* program  */
+  YYSYMBOL_declaration_block = 38,         /* declaration_block  */
+  YYSYMBOL_declarations = 39,              /* declarations  */
+  YYSYMBOL_decl_types = 40,                /* decl_types  */
+  YYSYMBOL_DATATYPE = 41                   /* DATATYPE  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -489,21 +508,21 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  17
+#define YYFINAL  9
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   74
+#define YYLAST   21
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  24
+#define YYNTOKENS  36
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  14
+#define YYNNTS  6
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  32
+#define YYNRULES  13
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  59
+#define YYNSTATES  26
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   270
+#define YYMAXUTOK   278
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -521,15 +540,15 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-      22,    23,    17,    15,    20,    16,     2,    18,     2,     2,
+      32,    33,    26,    24,    29,    25,     2,    27,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,    21,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,    23,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,    30,     2,    31,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,    34,     2,    35,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -544,17 +563,15 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
-      19
+      15,    16,    17,    18,    19,    20,    21,    22,    28
 };
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    65,    65,    66,    69,    70,    73,    81,    89,    90,
-      91,    94,    97,   102,   109,   112,   113,   114,   121,   128,
-     129,   130,   133,   149,   154,   159,   164,   174,   175,   178,
-     183,   192,   198
+       0,   107,   107,   128,   131,   136,   137,   147,   148,   151,
+     156,   162,   167,   175
 };
 #endif
 
@@ -570,13 +587,14 @@ static const char *yysymbol_name (yysymbol_kind_t yysymbol) YY_ATTRIBUTE_UNUSED;
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "\"end of file\"", "error", "\"invalid token\"", "ID", "INT",
-  "INT_NUMBER", "BEGIN_DECL", "END_DECL", "TERMINATOR", "PRINT_STATEMENT",
-  "DOUBLE", "DOUBLE_NUMBER", "RETURN", "IF", "ELSE", "'+'", "'-'", "'*'",
-  "'/'", "UMINUS", "','", "'='", "'('", "')'", "$accept", "program",
-  "declaration_block", "begin", "end", "declarations", "declaration",
-  "remaining", "DATATYPE", "body", "assignment", "expression",
-  "print_statement", "values", YY_NULLPTR
+  "\"end of file\"", "error", "\"invalid token\"", "ID", "INT_NUMBER",
+  "INT", "BEGIN_DECL", "END_DECL", "BEGIN_BODY", "END_BODY", "TERMINATOR",
+  "PRINT_STATEMENT", "IF", "ELSE", "FOR", "BREAK", "CONTINUE",
+  "GREATER_THAN", "GREATER_THAN_OR_EQUAL_TO", "LESS_THAN",
+  "LESS_THAN_OR_EQUAL_TO", "IS_EQUAL", "IS_NOT_EQUAL", "'='", "'+'", "'-'",
+  "'*'", "'/'", "UMINUS", "','", "'['", "']'", "'('", "')'", "'{'", "'}'",
+  "$accept", "program", "declaration_block", "declarations", "decl_types",
+  "DATATYPE", YY_NULLPTR
 };
 
 static const char *
@@ -586,7 +604,7 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-17)
+#define YYPACT_NINF (-20)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -600,12 +618,9 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-       9,   -16,   -17,   -17,   -12,    19,    16,    14,    52,    -2,
-      13,    17,    18,    19,    19,   -17,    35,   -17,    -2,   -17,
-     -17,   -17,   -17,    50,    34,    40,   -17,    47,    29,    58,
-     -17,   -17,    19,    19,    19,    19,   -17,    46,    46,    45,
-     -17,   -17,    59,   -17,   -17,    49,   -17,   -17,   -17,    21,
-      21,   -17,   -17,    19,   -17,   -17,    67,    46,   -17
+       0,    -3,     9,   -20,   -20,   -20,   -20,    -2,     7,   -20,
+     -20,   -20,     7,   -19,   -10,    -9,     8,   -20,    10,   -20,
+     -17,   -15,   -20,    12,   -14,   -20
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -613,26 +628,21 @@ static const yytype_int8 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,    28,    29,     6,     0,     0,     0,     0,     0,     3,
-       0,     0,     0,     0,     0,    28,     0,     1,     2,    14,
-       7,    10,     5,     0,     0,     0,    21,     0,     0,     0,
-      15,    17,     0,     0,     0,     0,    19,    22,    32,     0,
-      27,     4,     0,     8,    12,    11,    16,    18,    20,    23,
-      24,    25,    26,     0,    30,     9,     0,    31,    13
+       0,     0,     0,     2,    13,     4,     7,     0,     0,     1,
+       3,     8,     0,     9,     0,     0,     0,     5,     0,     6,
+       0,    10,    11,     0,     0,    12
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -17,   -17,   -17,   -17,    48,   -17,    51,   -17,   -17,    65,
-      -7,    -5,    31,   -17
+     -20,   -20,   -20,   -20,     6,    14
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-       0,     6,     7,     8,    22,    23,    24,    45,    25,     9,
-      10,    11,    12,    39
+       0,     2,     3,     7,    14,     8
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -640,56 +650,39 @@ static const yytype_int8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-      16,     1,    27,     2,    28,    13,    26,     4,    37,    38,
-      14,    27,     1,    28,     2,     3,    17,     1,     4,     2,
-       5,    30,    15,     4,     2,    31,    36,    49,    50,    51,
-      52,     5,    32,    33,    34,    35,     5,    47,    34,    35,
-      29,     5,    43,    44,    32,    33,    34,    35,    57,    29,
-      32,    33,    34,    35,    19,    46,    19,    20,    40,    20,
-      21,    32,    33,    34,    35,    53,    48,    55,    54,    56,
-      58,    41,    18,     0,    42
+      17,    19,     4,     4,     5,    10,     1,     6,    11,     9,
+      13,    16,    20,    21,    22,    23,    24,    25,    15,    18,
+      18,    12
 };
 
 static const yytype_int8 yycheck[] =
 {
-       5,     3,     9,     5,     9,    21,     8,     9,    13,    14,
-      22,    18,     3,    18,     5,     6,     0,     3,     9,     5,
-      22,     8,     3,     9,     5,     8,     8,    32,    33,    34,
-      35,    22,    15,    16,    17,    18,    22,     8,    17,    18,
-       9,    22,     8,     3,    15,    16,    17,    18,    53,    18,
-      15,    16,    17,    18,     4,     8,     4,     7,    23,     7,
-       8,    15,    16,    17,    18,    20,     8,     8,    23,    20,
-       3,    23,     7,    -1,    23
+      10,    10,     5,     5,     7,     7,     6,    10,    10,     0,
+       3,    30,     4,     3,    31,    30,     4,    31,    12,    29,
+      29,     7
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,     3,     5,     6,     9,    22,    25,    26,    27,    33,
-      34,    35,    36,    21,    22,     3,    35,     0,    33,     4,
-       7,     8,    28,    29,    30,    32,     8,    34,    35,    36,
-       8,     8,    15,    16,    17,    18,     8,    35,    35,    37,
-      23,    28,    30,     8,     3,    31,     8,     8,     8,    35,
-      35,    35,    35,    20,    23,     8,    20,    35,     3
+       0,     6,    37,    38,     5,     7,    10,    39,    41,     0,
+       7,    10,    41,     3,    40,    40,    30,    10,    29,    10,
+       4,     3,    31,    30,     4,    31
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    24,    25,    25,    26,    26,    27,    28,    29,    29,
-      29,    30,    31,    31,    32,    33,    33,    33,    33,    33,
-      33,    33,    34,    35,    35,    35,    35,    35,    35,    35,
-      36,    37,    37
+       0,    36,    37,    38,    38,    39,    39,    39,    39,    40,
+      40,    40,    40,    41
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     2,     1,     3,     2,     1,     1,     2,     3,
-       1,     2,     1,     3,     1,     2,     3,     2,     3,     2,
-       3,     2,     3,     3,     3,     3,     3,     3,     1,     1,
-       4,     3,     1
+       0,     2,     1,     3,     2,     3,     4,     1,     2,     1,
+       3,     4,     6,     1
 };
 
 
@@ -1152,181 +1145,85 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-  case 6: /* begin: BEGIN_DECL  */
-                                                        {	
-										DECLARATION_PHASE = true;
-										char output[100];
-										sprintf(output, "Begin of declaration (Line %d)", lineno);
-										put_in_sequence(output);
-									}
-    break;
-
-  case 7: /* end: END_DECL  */
-                                                                        {	DECLARATION_PHASE = false;
-										char output[100];
-										sprintf(output, "End of declaration (Line %d)", lineno);
-										put_in_sequence(output);
-									}
-    break;
-
-  case 8: /* declarations: declaration TERMINATOR  */
-                                                                        { 					}
-    break;
-
-  case 9: /* declarations: declarations declaration TERMINATOR  */
-                                                                                        {					}
-    break;
-
-  case 12: /* remaining: ID  */
-                                                                                {
-													char output[200];
-													sprintf(output, "\tLine %d : Declaring %s", lineno, (yyvsp[0].symp)->name);
-													put_in_sequence(output);
+  case 2: /* program: declaration_block  */
+                                                                        {
+													/* check for NULLS ?? */
+													if((yyvsp[0].block_ptr) != NULL){
+														root->block_start = (yyvsp[0].block_ptr)->block_start; 
+														root->block_end = (yyvsp[0].block_ptr)->block_end;
+													}
 												}
     break;
 
-  case 13: /* remaining: remaining ',' ID  */
-                                                                                        {
-														char output[200];
-														sprintf(output, "\tLine %d : Declaring %s", lineno, (yyvsp[0].symp)->name);
-														put_in_sequence(output);
+  case 3: /* declaration_block: BEGIN_DECL declarations END_DECL  */
+                                                                                {
+																	(yyval.block_ptr) = (yyvsp[-1].block_ptr);
+																}
+    break;
+
+  case 4: /* declaration_block: BEGIN_DECL END_DECL  */
+                                                                                                                {
+																	(yyval.block_ptr) = NULL;
+																}
+    break;
+
+  case 5: /* declarations: DATATYPE decl_types TERMINATOR  */
+                                                                                                { 	(yyval.block_ptr) = (yyvsp[-1].block_ptr); }
+    break;
+
+  case 6: /* declarations: declarations DATATYPE decl_types TERMINATOR  */
+                                                                                                { 
+																			if((yyvsp[-3].block_ptr) == NULL){
+																				(yyval.block_ptr) = (yyvsp[-1].block_ptr);
+																			}else{
+																				(yyvsp[-3].block_ptr)->block_end->next = (yyvsp[-1].block_ptr)->block_start;
+																				(yyvsp[-1].block_ptr)->block_start->prev = (yyvsp[-3].block_ptr)->block_end;
+																				(yyvsp[-3].block_ptr)->block_end = (yyvsp[-1].block_ptr)->block_end;
+																				(yyval.block_ptr) = (yyvsp[-3].block_ptr);
+																			}
+																		}
+    break;
+
+  case 7: /* declarations: TERMINATOR  */
+                                                                                                                                        { (yyval.block_ptr) = NULL; }
+    break;
+
+  case 8: /* declarations: declarations TERMINATOR  */
+                                                                                                                        { (yyval.block_ptr) = (yyvsp[-1].block_ptr);	}
+    break;
+
+  case 9: /* decl_types: ID  */
+                                                                                                {
+														(yyval.block_ptr) = allot_block();
+														(yyval.block_ptr)->block_start = allot_statement(statement_type::DECLARATION, declaration_type::VARIABLE, (yyvsp[0].name));
+														(yyval.block_ptr)->block_end = (yyval.block_ptr)->block_start;
 													}
     break;
 
-  case 15: /* body: assignment TERMINATOR  */
-                                                                        {  							}
+  case 10: /* decl_types: decl_types ',' ID  */
+                                                                                        {
+														(yyvsp[-2].block_ptr)->block_end->next = allot_statement(statement_type::DECLARATION, declaration_type::VARIABLE, (yyvsp[0].name));
+														(yyvsp[-2].block_ptr)->block_end->next->prev = (yyvsp[-2].block_ptr)->block_end->next;
+														(yyvsp[-2].block_ptr)->block_end->next = (yyvsp[-2].block_ptr)->block_end->next->next;
+														(yyval.block_ptr) = (yyvsp[-2].block_ptr);
+													}
     break;
 
-  case 16: /* body: body assignment TERMINATOR  */
-                                                                        {  							}
+  case 11: /* decl_types: ID '[' INT_NUMBER ']'  */
+                                                                                {
+														(yyval.block_ptr) = allot_block();
+														(yyval.block_ptr)->block_start = allot_statement(statement_type::DECLARATION, declaration_type::ARRAY, (yyvsp[-3].name), (yyvsp[-1].int_value));
+														(yyval.block_ptr)->block_end = (yyval.block_ptr)->block_start;
+													}
     break;
 
-  case 17: /* body: expression TERMINATOR  */
-                                                                        {   					
-										char output[100];
-										sprintf(output, "Expression (Line %d)", lineno);
-										put_in_sequence(output);
-										
-										seq_node_tail->root = (yyvsp[-1].syntax_tree);
-									}
-    break;
-
-  case 18: /* body: body expression TERMINATOR  */
-                                                                        {  					
-										char output[100];
-										sprintf(output, "Expression (Line %d)", lineno);
-										put_in_sequence(output);
-										
-										seq_node_tail->root = (yyvsp[-1].syntax_tree);									
-									}
-    break;
-
-  case 19: /* body: print_statement TERMINATOR  */
-                                                                        { 							}
-    break;
-
-  case 20: /* body: body print_statement TERMINATOR  */
-                                                                        {  							}
-    break;
-
-  case 21: /* body: body TERMINATOR  */
-                                                                        {							}
-    break;
-
-  case 22: /* assignment: ID '=' expression  */
-                                                                        {	
-										(yyvsp[-2].symp)->isInitialized = true;
-										(yyvsp[-2].symp)->value = (yyvsp[0].syntax_tree)->value;
-										char output[100];
-										sprintf(output, "Assignment(Line %d)", lineno);
-										put_in_sequence(output);
-										
-										struct syntax_tree_node* left_node = allot_syntax_tree_node((yyvsp[-2].symp)->name, (yyvsp[-2].symp)->value);
-										struct syntax_tree_node* parent = allot_syntax_tree_node("ASSIGN", (yyvsp[-2].symp)->value);
-										parent->left = left_node;
-										parent->right = (yyvsp[0].syntax_tree);
-										
-										seq_node_tail->root = parent;
-									}
-    break;
-
-  case 23: /* expression: expression '+' expression  */
-                                                                        { 	
-										(yyval.syntax_tree) = allot_syntax_tree_node("ADD", (yyvsp[-2].syntax_tree)->value + (yyvsp[0].syntax_tree)->value);
-										(yyval.syntax_tree)->left = (yyvsp[-2].syntax_tree);
-										(yyval.syntax_tree)->right = (yyvsp[0].syntax_tree);								
-									}
-    break;
-
-  case 24: /* expression: expression '-' expression  */
-                                                                        {
-										(yyval.syntax_tree) = allot_syntax_tree_node("SUB", (yyvsp[-2].syntax_tree)->value - (yyvsp[0].syntax_tree)->value);
-										(yyval.syntax_tree)->left = (yyvsp[-2].syntax_tree);
-										(yyval.syntax_tree)->right = (yyvsp[0].syntax_tree);
-									}
-    break;
-
-  case 25: /* expression: expression '*' expression  */
-                                                                        { 	
-										(yyval.syntax_tree) = allot_syntax_tree_node("MUL", (yyvsp[-2].syntax_tree)->value * (yyvsp[0].syntax_tree)->value);
-										(yyval.syntax_tree)->left = (yyvsp[-2].syntax_tree);
-										(yyval.syntax_tree)->right = (yyvsp[0].syntax_tree);
-									}
-    break;
-
-  case 26: /* expression: expression '/' expression  */
-                                                                        {
-										if((yyvsp[0].syntax_tree)->value == 0){
-											yyerror("Runtime error: Division by zero");
-											exit(1);
-										}else{
-											(yyval.syntax_tree) = allot_syntax_tree_node("DIV", (yyvsp[-2].syntax_tree)->value / (yyvsp[0].syntax_tree)->value);
-											(yyval.syntax_tree)->left = (yyvsp[-2].syntax_tree);
-											(yyval.syntax_tree)->right = (yyvsp[0].syntax_tree);
-										}
-									}
-    break;
-
-  case 27: /* expression: '(' expression ')'  */
-                                                                        { 	(yyval.syntax_tree) = (yyvsp[-1].syntax_tree); 					}
-    break;
-
-  case 28: /* expression: ID  */
-                                                                        { 
-										(yyval.syntax_tree) = allot_syntax_tree_node((yyvsp[0].symp)->name, (yyvsp[0].symp)->value);
-									}
-    break;
-
-  case 29: /* expression: INT_NUMBER  */
-                                                                        {					
-										(yyval.syntax_tree) = allot_syntax_tree_node("NUM", (yyvsp[0].int_value));
-									}
-    break;
-
-  case 30: /* print_statement: PRINT_STATEMENT '(' values ')'  */
-                                                                        {
-										char output[100];
-										sprintf(output, "Print call (Line %d)", lineno);
-										put_in_sequence(output);
-										
-										seq_node_tail->sub_nodes = (yyvsp[-1].seq);
-									}
-    break;
-
-  case 31: /* values: values ',' expression  */
-                                                                        { 	printf("%d\n", (yyvsp[0].syntax_tree)->value);
-										(yyval.seq) = allot_sequence_node("Sub-nodes");
-										(yyval.seq)->root = (yyvsp[0].syntax_tree);
-										(yyval.seq)->prev = (yyvsp[-2].seq);
-										(yyvsp[-2].seq)->next = (yyval.seq);
-									}
-    break;
-
-  case 32: /* values: expression  */
-                                                                        { 	printf("%d\n", (yyvsp[0].syntax_tree)->value);
-										(yyval.seq) = allot_sequence_node("Sub-nodes");
-										(yyval.seq)->root = (yyvsp[0].syntax_tree);
-									}
+  case 12: /* decl_types: decl_types ',' ID '[' INT_NUMBER ']'  */
+                                                                {
+														(yyvsp[-5].block_ptr)->block_end->next = allot_statement(statement_type::DECLARATION, declaration_type::ARRAY, (yyvsp[-3].name), (yyvsp[-1].int_value));
+														(yyvsp[-5].block_ptr)->block_end->next->prev = (yyvsp[-5].block_ptr)->block_end->next;
+														(yyvsp[-5].block_ptr)->block_end = (yyvsp[-5].block_ptr)->block_end->next;
+														(yyval.block_ptr) = (yyvsp[-5].block_ptr);
+													}
     break;
 
 
@@ -1534,8 +1431,8 @@ int main(int argc, char* argv[]){
 		yyin = fp;
 	}
 	yyparse();
-	printSymbolTable();
-	printSequence();
+	// printSymbolTable();
+	// printSequence();
 	return 0;
 }	
 
@@ -1549,3 +1446,5 @@ void yyerror(char* msg){
 	exit(1); // failure
 }
 
+// if if else ambigiuity we need to see 
+// initializations are not allowed in declaration_block

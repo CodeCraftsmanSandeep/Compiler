@@ -1,0 +1,10 @@
+begindecl 
+  integer var1, var2, var3;
+enddecl
+
+var1 = 10;
+var3= -10;
+var2 = var1 - 2;
+var2 = var1 -11;
+var2 = var2 - var1;
+print(var1, var2, var3);

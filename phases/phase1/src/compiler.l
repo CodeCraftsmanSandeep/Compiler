@@ -15,7 +15,7 @@ extern int lineno;
 "enddecl"					{ return END_DECL;									}
 "print"						{ return PRINT_STATEMENT;								}
 "integer" 					{ return INT; 										}
-[-]?[0-9][0-9]*     				{ yylval.int_value = atoi(yytext); return INT_NUMBER; 	        			}
+[0-9][0-9]*     				{ yylval.int_value = atoi(yytext); return INT_NUMBER; 	        			}
 ";"						{ return TERMINATOR;							}
 "+" 						|
 "-" 						|

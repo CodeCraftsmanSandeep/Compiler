@@ -158,7 +158,11 @@ expression : 		expression '+' expression			{
 											$$->right = $3;
 										}
 									}
-	| 		'(' expression ')'				{ 	$$ = $2; 					}			
+	| 		'(' expression ')'				{ 	$$ = $2; 					}
+	| 		'-' expression	%prec UMINUS			{ 	
+										$2->value = -$2->value;
+										$$ = $2; 	
+									}				
 	| 		ID						{ 
 										$$ = allot_syntax_tree_node($1->name, $1->value);
 									}

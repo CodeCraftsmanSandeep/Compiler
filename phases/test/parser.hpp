@@ -35,8 +35,8 @@
    especially those whose name start with YY_ or yy_.  They are
    private implementation details that can be changed or removed.  */
 
-#ifndef YY_YY_BIN_Y_TAB_H_INCLUDED
-# define YY_YY_BIN_Y_TAB_H_INCLUDED
+#ifndef YY_YY_PARSER_HPP_INCLUDED
+# define YY_YY_PARSER_HPP_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -54,27 +54,7 @@ extern int yydebug;
     YYEOF = 0,                     /* "end of file"  */
     YYerror = 256,                 /* error  */
     YYUNDEF = 257,                 /* "invalid token"  */
-    ID = 258,                      /* ID  */
-    INT_NUMBER = 259,              /* INT_NUMBER  */
-    INT = 260,                     /* INT  */
-    BEGIN_DECL = 261,              /* BEGIN_DECL  */
-    END_DECL = 262,                /* END_DECL  */
-    BEGIN_BODY = 263,              /* BEGIN_BODY  */
-    END_BODY = 264,                /* END_BODY  */
-    TERMINATOR = 265,              /* TERMINATOR  */
-    PRINT_STATEMENT = 266,         /* PRINT_STATEMENT  */
-    IF = 267,                      /* IF  */
-    ELSE = 268,                    /* ELSE  */
-    FOR = 269,                     /* FOR  */
-    BREAK = 270,                   /* BREAK  */
-    CONTINUE = 271,                /* CONTINUE  */
-    GREATER_THAN = 272,            /* GREATER_THAN  */
-    GREATER_THAN_OR_EQUAL_TO = 273, /* GREATER_THAN_OR_EQUAL_TO  */
-    LESS_THAN = 274,               /* LESS_THAN  */
-    LESS_THAN_OR_EQUAL_TO = 275,   /* LESS_THAN_OR_EQUAL_TO  */
-    IS_EQUAL = 276,                /* IS_EQUAL  */
-    IS_NOT_EQUAL = 277,            /* IS_NOT_EQUAL  */
-    UMINUS = 278                   /* UMINUS  */
+    NUM = 258                      /* NUM  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -83,43 +63,11 @@ extern int yydebug;
 #define YYEOF 0
 #define YYerror 256
 #define YYUNDEF 257
-#define ID 258
-#define INT_NUMBER 259
-#define INT 260
-#define BEGIN_DECL 261
-#define END_DECL 262
-#define BEGIN_BODY 263
-#define END_BODY 264
-#define TERMINATOR 265
-#define PRINT_STATEMENT 266
-#define IF 267
-#define ELSE 268
-#define FOR 269
-#define BREAK 270
-#define CONTINUE 271
-#define GREATER_THAN 272
-#define GREATER_THAN_OR_EQUAL_TO 273
-#define LESS_THAN 274
-#define LESS_THAN_OR_EQUAL_TO 275
-#define IS_EQUAL 276
-#define IS_NOT_EQUAL 277
-#define UMINUS 278
+#define NUM 258
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-union YYSTYPE
-{
-
-	int int_value;								
-	char* name;									
-	struct block* block_ptr;
-	struct statement_node* one_statement;
-	enum class expression_node_type expr_type;			
-	struct expression_node* expr;
-
-
-};
-typedef union YYSTYPE YYSTYPE;
+typedef int YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define YYSTYPE_IS_DECLARED 1
 #endif
@@ -131,4 +79,4 @@ extern YYSTYPE yylval;
 int yyparse (void);
 
 
-#endif /* !YY_YY_BIN_Y_TAB_H_INCLUDED  */
+#endif /* !YY_YY_PARSER_HPP_INCLUDED  */

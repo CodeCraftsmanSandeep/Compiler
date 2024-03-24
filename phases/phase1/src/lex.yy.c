@@ -1,6 +1,5 @@
-#line 2 "bin/lex.yy.c"
 
-#line 4 "bin/lex.yy.c"
+#line 3 "lex.yy.c"
 
 #define  YY_INT_ALIGNED short int
 
@@ -465,8 +464,8 @@ int yy_flex_debug = 0;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "src/compiler.l"
-#line 2 "src/compiler.l"
+#line 1 "compiler.l"
+#line 2 "compiler.l"
 #include "y.tab.h"
 #include <stdbool.h>
 struct symbol_table;
@@ -475,8 +474,8 @@ extern struct symbol_table* declare_variable(char*);
 extern bool DECLARATION_PHASE;
 extern void printSymbolTable();
 extern int lineno;
-#line 479 "bin/lex.yy.c"
-#line 480 "bin/lex.yy.c"
+#line 478 "lex.yy.c"
+#line 479 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -693,10 +692,10 @@ YY_DECL
 		}
 
 	{
-#line 12 "src/compiler.l"
+#line 12 "compiler.l"
 
 
-#line 700 "bin/lex.yy.c"
+#line 699 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -755,58 +754,58 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 14 "src/compiler.l"
+#line 14 "compiler.l"
 { return BEGIN_DECL;									}
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 15 "src/compiler.l"
+#line 15 "compiler.l"
 { return END_DECL;									}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 16 "src/compiler.l"
+#line 16 "compiler.l"
 { return PRINT_STATEMENT;								}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 17 "src/compiler.l"
+#line 17 "compiler.l"
 { return INT; 										}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 18 "src/compiler.l"
+#line 18 "compiler.l"
 { yylval.int_value = atoi(yytext); return INT_NUMBER; 	        			}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 19 "src/compiler.l"
+#line 19 "compiler.l"
 { return TERMINATOR;							}
 	YY_BREAK
 case 7:
-#line 21 "src/compiler.l"
+#line 21 "compiler.l"
 case 8:
-#line 22 "src/compiler.l"
+#line 22 "compiler.l"
 case 9:
-#line 23 "src/compiler.l"
+#line 23 "compiler.l"
 case 10:
 YY_RULE_SETUP
-#line 23 "src/compiler.l"
+#line 23 "compiler.l"
 { return yytext[0]; 							}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 24 "src/compiler.l"
+#line 24 "compiler.l"
 { return ISEQUAL;							}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 25 "src/compiler.l"
+#line 25 "compiler.l"
 { return ISNOTEQUAL;							}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 26 "src/compiler.l"
+#line 26 "compiler.l"
 {  
 						  	if(DECLARATION_PHASE)	yylval.symp = declare_variable(yytext);
 						  	else yylval.symp = lookup(yytext);
@@ -816,25 +815,25 @@ YY_RULE_SETUP
 case 14:
 /* rule 14 can match eol */
 YY_RULE_SETUP
-#line 31 "src/compiler.l"
+#line 31 "compiler.l"
 { lineno++;					}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 32 "src/compiler.l"
+#line 32 "compiler.l"
 {	/*ignore*/;				}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 33 "src/compiler.l"
+#line 33 "compiler.l"
 { return yytext[0]; 	        		}
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 36 "src/compiler.l"
+#line 36 "compiler.l"
 ECHO;
 	YY_BREAK
-#line 838 "bin/lex.yy.c"
+#line 837 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1839,7 +1838,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 36 "src/compiler.l"
+#line 36 "compiler.l"
 
 
 
