@@ -5,28 +5,10 @@
 #include <string.h>
 #include <stdarg.h>
 
-enum class expression_node_type{
-	VAR,
-	ARRAY_LOC,
-	NUM,
-	UNARY_MINUS,
-	PLUS,  /* add operator */
-	MINUS,
-	MUL,
-	DIV,
-	GT,
-	LT,
-	GTEQ,
-	LTEQ,
-	EQEQ, 	/* '==' is equal to  */
-	NTEQ,  	/* !=  is not equal to */
-	ASSIGN	 	/* '=' assignment */
-};
+#include "symbol_table.h"
+#include "expression_tree.h"
 
-#include "symbol_table.hpp"
-#include "expression_tree.hpp"
-
-#include "sequence.hpp"
+#include "sequence.h"
 extern struct block* allot_block();
 
 struct symbol_table;
@@ -42,49 +24,58 @@ char error_string[100];
 
 // extern struct block;
 
-struct block* root = allot_block();
+struct block* root = NULL;
+struct else_if_helper{
+	struct if_statement_node* else_if_begin;
+	struct if_statement_node* else_if_end;
+};
+
+int nested_for_count = 0;
 
 %}
-
 
 %union{
 	int int_value;								
 	char* name;									
 	struct block* block_ptr;
-	struct statement_node* one_statement;
-	enum class expression_node_type expr_type;			
+	struct statement_node* one_statement;		
 	struct expression_node* expr;
+	struct else_if_helper* aux;
 }
 
 
-%token <name> ID
-%token <int_value> INT_NUMBER
-%type  <expr> expression
+%token 	<name> ID
+%token 	<int_value> INT_NUMBER
+%type  	<expr> expression
 
 %type  	<block_ptr> body
 %type  	<block_ptr> decl_types
 %type  	<block_ptr> declarations
 %type  	<block_ptr> declaration_block
+%type 	<block_ptr> source_program;
+
 %type 	<one_statement> if_statement;
-%type 	<one_statement> print_values;
+%type 	<aux> else_ifs;
+
+%type 	<block_ptr> print_values;
+
 %type 	<one_statement> for_production;
 
-
-%type <expr_type> OP;
 %start program
 
 %token INT
 %token BEGIN_DECL END_DECL
-%token BEGIN_BODY
-%token END_BODY
+%token PROGRAM_BEGIN
+%token PROGRAM_END
 %token TERMINATOR
-%token PRINT_STATEMENT
+%token WRITE
 %token IF
 %token ELSE
 %token FOR
 %token BREAK
 %token CONTINUE
-
+%token PLUS_PLUS
+%token MINUS_MINUS
 
 /* operators */
 %token GREATER_THAN GREATER_THAN_OR_EQUAL_TO LESS_THAN LESS_THAN_OR_EQUAL_TO
@@ -97,32 +88,32 @@ struct block* root = allot_block();
 %left IS_EQUAL IS_NOT_EQUAL
 %left GREATER_THAN GREATER_THAN_OR_EQUAL_TO LESS_THAN LESS_THAN_OR_EQUAL_TO
 %left '+' '-'
-%left '*' '/'
-%nonassoc UMINUS
+%left '*' '/' '%'
+%left UMINUS PRE_PLUS_PLUS PRE_MINUS_MINUS
+%left ACCESS POST_PLUS_PLUS POST_MINUS_MINUS
+%left PAREN 
 
 // need to handle precedence of parenthesis operator, and '[' ']'. How to ??
 %%
 
 
-program: 		declaration_block				{
-													/* check for NULLS ?? */
-													if($1 != NULL){
-														root->block_start = $1->block_start; 
-														root->block_end = $1->block_end;
+program: 		declaration_block					{
+														root = $1;
+													}	
+|				declaration_block source_program	{
+														/* check for NULLS */
+														if($1 == NULL) root = $2;
+														else if($2 == NULL) root = $1;
+														else{
+															$1->block_end->next = $2->block_start;
+															$2->block_start->prev = $1->block_end;
+															$1->block_end = $2->block_end;
+															root = $1;
+														}
 													}
-												}	
-// |				declaration_block BEGIN body END			{
-// 													/* join declaration_block and body_block */
-// 													$1->block_end->next = $3->block_start;
-// 													$3->block_start->prev = $1->block_end;
-
-// 													root->block_start = $1->block_start;
-// 													root->block_end = $3->block_end;
-// 												}
-// | 				BEGIN body	END						{
-// 													root->block_start = $2->block_start; 
-// 													root->block_end = $2->block_end;
-// 												}
+| 				source_program						{
+														root = $1;
+													}
 ;
 
 declaration_block: 		BEGIN_DECL declarations END_DECL		{
@@ -156,12 +147,12 @@ decl_types:		ID									{
 	|		decl_types ',' ID						{
 														$1->block_end->next = allot_statement(DECLARATION, VARIABLE, $3);
 														$1->block_end->next->prev = $1->block_end->next;
-														$1->block_end->next = $1->block_end->next->next;
+														$1->block_end = $1->block_end->next;
 														$$ = $1;
 													}
 	|		ID '[' INT_NUMBER ']' 					{
 														$$ = allot_block();
-															$$->block_start = allot_statement(DECLARATION, ARRAY, $1, $3);
+														$$->block_start = allot_statement(DECLARATION, ARRAY, $1, $3);
 														$$->block_end = $$->block_start;
 													}
 	| 		decl_types ',' ID '[' INT_NUMBER ']'	{
@@ -175,155 +166,255 @@ decl_types:		ID									{
 DATATYPE: 		INT
 ;
 
-body: 		expression TERMINATOR				{   
+source_program : PROGRAM_BEGIN body PROGRAM_END	{$$ = $2;}
+|				 PROGRAM_BEGIN  PROGRAM_END		{$$ = NULL;}
+;
+
+body: 		BREAK TERMINATOR					{	
 													$$ = allot_block();
-													$$->block_start = allot_statement(EXPRESSION, $1);
-												}
-| 			body expression TERMINATOR			{  					
-													$1->block_end->next = allot_statement(EXPRESSION, $2);
-													$1->block_end->next->prev = $1->block_end;
-													$1->block_end = $1->block_end->next;
-													$$ = $1;
-												}
-|			if_statement						{	
-													$$ = allot_block();
-													$$->block_start = $1;
-													$$->block_end = $1;
-												}
-| 			body if_statement 					{ 	
-													$1->block_end->next = $2;
-													$2->prev = $1->block_end;
-													$1->block_end = $2;
-													$$ = $1;
-												}
-|			for_production										{ 		}
-| 			body for_production									{ 		}
-| 			PRINT_STATEMENT '(' print_values ')' TERMINATOR				{	
-																			$$ = allot_block();
-																			$$->block_start = $3;
-																			$$->block_end = $3;
-																		}
-																		
-|			body PRINT_STATEMENT '(' print_values ')' TERMINATOR		{  			
-																			$1->block_end->next = $4;
-																			$1->block_end->next->prev = $1->block_end;
-																			$1->block_end = $1->block_end->next;
-																			$$ = $1;
-																		}
-|			BREAK TERMINATOR					{	
-													$$ = allot_block;
 													$$->block_start = allot_statement(BREAK_STATEMENT);
 													$$->block_end = $$->block_start;
 												}
 | 			body BREAK TERMINATOR				{	
-													$1->block_end->next = allot_statement(BREAK_STATEMENT);
-													$1->block_end->next->prev = $1->block_end;
-													$1->block_end = $1->block_end->next;
-													$$ = $1;
+													if($1 == NULL){
+														$$ = allot_block();
+														$$->block_start = allot_statement(BREAK_STATEMENT);;
+														$$->block_end = $$->block_start;
+														$$->is_break = true;
+													}else{
+														$1->block_end->next = allot_statement(BREAK_STATEMENT);
+														$1->block_end->next->prev = $1->block_end;
+														$1->block_end = $1->block_end->next;
+														$$ = $1;
+														$$->is_break = true;
+
+													}
 												}
 |			CONTINUE TERMINATOR					{	
-													$$ = allot_block;
+													$$ = allot_block();
 													$$->block_start = allot_statement(CONTINUE_STATEMENT);
 													$$->block_end = $$->block_start;
 												}
 | 			body CONTINUE TERMINATOR			{	
-													$1->block_end->next = allot_statement(CONTINUE_STATEMENT);
-													$1->block_end->next->prev = $1->block_end;
-													$1->block_end = $1->block_end->next;
-													$$ = $1;
+													if($1 == NULL){
+														$$ = allot_block();
+														$$->block_start = allot_statement(CONTINUE_STATEMENT);;
+														$$->block_end = $$->block_start;
+													}else{
+														$1->block_end->next = allot_statement(CONTINUE_STATEMENT);
+														$1->block_end->next->prev = $1->block_end;
+														$1->block_end = $1->block_end->next;
+														$$ = $1;
+													}
 												}
+|			TERMINATOR							{	$$ = NULL; 	}
 |			body TERMINATOR 					{	$$ = $1;	}
-;
-
-for_production :	FOR '(' expression TERMINATOR expression TERMINATOR expression ')' '{' body '}'	{ 			
-													$$ = allot_statement(FOR_STATEMENT, $3, $5, $7, $10);
+|			expression TERMINATOR				{   
+													$$ = allot_block();
+													$$->block_start = allot_statement(EXPRESSION, $1);
+													$$->block_end = $$->block_start;
 												}
-;
-
-expression : 	'(' expression ')'						{ 	$$ = $2; 					}
-| 				'-' expression	%prec UMINUS			{	
-															$$ = 
-															xpression_node(UNARY_MINUS);
-															$$->right = $2; /* storing expression as right child */
-														}
-| 				expression OP expression				{	
-															$$ = allot_expression_node($2);
-															$$->left = $1;
-															$$->right = $3;
-														}
-| 				ID '=' expression						{
-															$$ = allot_expression_node(ASSIGN);
-															$$->left = allot_expression_node(VAR, $1);
-															$$->right = $3;
-														}
-|				ID '[' expression ']' '=' expression 	{
-															$$ = allot_expression_node(expression_node_type::ASSIGN);
-															$$->left = allot_expression_node(expression_node_type::ARRAY_LOC, $1);
-															$$->left->right = $3; /* index expression */
-															$$->right = $6;
-														}
-|				ID '[' expression ']'					{
-															$$ = allot_expression_node(expression_node_type::ARRAY_LOC, $1);
-															$$->right = $3; /* storing index in right node */
-														}
-| 				ID										{ 
-															$$ = allot_expression_node(expression_node_type::VAR, $1);
-														}
-| 				INT_NUMBER								{					
-															$$ = allot_expression_node(expression_node_type::NUM, $1);
-														}			
-;
-
-OP : 	'+'								{ 	$$ = expression_node_type::PLUS;	 	}
-|	 	'-'								{ 	$$ = expression_node_type::MINUS;	 	}
-|		'*'								{ 	$$ = expression_node_type::MUL;  		}
-|  	    '/'								{ 	$$ = expression_node_type::DIV;			}
-|		GREATER_THAN					{	$$ = expression_node_type::GT;			}
-|	 	GREATER_THAN_OR_EQUAL_TO		{	$$ = expression_node_type::GTEQ;		}
-|		LESS_THAN						{	$$ = expression_node_type::LT;			}
-| 		LESS_THAN_OR_EQUAL_TO			{	$$ = expression_node_type::LTEQ;		}
-| 		IS_EQUAL						{	$$ = expression_node_type::EQEQ;		}
-| 		IS_NOT_EQUAL					{	$$ = expression_node_type::NOTEQ;		}
-;
-
-if_statement : 		IF '(' expression ')' '{' body '}' 							{	$$ = allot_statement(statement_type::IF_STATEMENT, $3, $6);	}
-|					IF '(' expression ')' '{' body '}' ELSE '{' body '}'		{	
-																					$$ = allot_statement(statement_type::IF_STATEMENT, if_type::IF, $3, $6);
-																					$$->if_node->sibling = if_type::ELSE;
-																					$$->if_node->else_node = (if_statement*)malloc(sizeof(if_statement));
-																					$$->if_node->else_node->body = $10;
-																					$$->if_node->else_node->type = if_type::ELSE;
-																					$$->if_node->else_node->sibling = if_type::NO_SIBLING;
-																				}
-|					IF '(' expression ')' '{' body '}' else_ifs ELSE '{' body '}'			
-																				{
-																					// $$ = allot_statement(statement_type::IF_STATEMENT, if_type::IF, $3, $6);
-																					// $$->if_node->sibling = if_type::ELSE_IF;
-																					
-																					// = (if_statement*)malloc(sizeof(if_statement));
-																					// $$->if_node->else_if_node->body = $10;
-																					// $$->if_node->else_node->type = if_type::ELSE;
-																					// $$->if_node->else_node->sibling = if_type::NO_SIBLING;
-																				}
-|					IF '(' expression ')' '{' body '}' else_ifs 				{
-																				}	
-;
-
-else_ifs : 			ELSE IF '(' expression ')' '{' body '}'						{
-																					// $$ = (if_statement*)malloc(sizeof(if_statement));
-																					// $$->sibling = if_type::NO_SIBLING;
-																				}
-|			   		else_ifs ELSE IF '(' expression ')' '{' body '}'			{	}
+| 			body expression TERMINATOR			{  	
+													if($1 == NULL){
+														$$ = allot_block();
+														$$->block_start = allot_statement(EXPRESSION, $2);
+														$$->block_end = $$->block_start;
+													}else{
+														$1->block_end->next = allot_statement(EXPRESSION, $2);
+														$1->block_end->next->prev = $1->block_end;
+														$1->block_end = $1->block_end->next;
+														$$ = $1;
+													}
+												}
+| 			WRITE '(' print_values ')' TERMINATOR						{	
+																			$$ = $3;
+																		}
+|			body WRITE '(' print_values ')' TERMINATOR					{  			
+																			if($1 == NULL){
+																				$$ = $4;
+																			}else{
+																				$1->block_end->next = $4->block_start;
+																				$1->block_end->next->prev = $1->block_end;
+																				$1->block_end = $4->block_end;
+																				$$ = $1;
+																			}
+																		}
+|			if_statement												{	
+																			$$ = allot_block();
+																			$$->block_start = $1;
+																			$$->block_end = $1;
+																		}
+| 			body if_statement 											{ 	
+																			if($1 == NULL){
+																				$$ = allot_block();
+																				$$->block_start = $2;
+																				$$->block_end = $2;
+																			}else{
+																				$1->block_end->next = $2;
+																				$2->prev = $1->block_end;
+																				$1->block_end = $2;
+																				$$ = $1;
+																			}
+																		}
+|			for_production												{		
+																			$$ = allot_block();
+																			$$->block_start = $1;
+																			$$->block_end = $1;
+																		}
+| 			body for_production											{ 	
+																			if($1 == NULL){
+																				$$ = allot_block();
+																				$$->block_start = $2;
+																				$$->block_end = $2;
+																			}else{
+																				$1->block_end->next = $2;
+																				$2->prev = $1->block_end;
+																				$1->block_end = $2;
+																				$$ = $1;
+																			}
+																		}
 ;
 
 print_values: 		print_values ',' expression					{	
-																	$1->next = allot_statement(statement_type::EXPRESSION, $3);
-																	$1->next->prev = $1->next;
+																	$1->block_end->next = allot_statement(PRINT_STATEMENT, $3);
+																	$1->block_end->next->prev = $1->block_end;
+																	$1->block_end = $1->block_end->next;
 																	$$ = $1;
 																}
 |					expression									{	 	
-																	$$ = allot_statement(statement_type::EXPRESSION, $1);
+																	$$ = allot_block();
+																	$$->block_start = allot_statement(PRINT_STATEMENT, $1);
+																	$$->block_end = $$->block_start;
 																}
+;
+
+if_statement : 		IF '(' expression ')' '{' body '}' 								{	$$ = allot_statement(IF_STATEMENT, $6, $3); }
+|					IF '(' expression ')' '{'  '}' 									{	$$ = allot_statement(IF_STATEMENT, NULL, $3); }
+|					IF '(' expression ')' '{' body '}' ELSE '{' body '}'			{	
+																						$$ = allot_statement(IF_STATEMENT, $6, $3);
+																						$$->if_node->false_node = allot_if_statement_node(ELSE_TYPE, $10);
+																					}
+|					IF '(' expression ')' '{' body '}' ELSE '{'  '}'				{	
+																						$$ = allot_statement(IF_STATEMENT, $6, $3);
+																						$$->if_node->false_node = allot_if_statement_node(ELSE_TYPE, NULL);
+																					}
+|					IF '(' expression ')' '{'  '}' ELSE '{' body '}'				{	
+																						$$ = allot_statement(IF_STATEMENT, NULL, $3);
+																						$$->if_node->false_node = allot_if_statement_node(ELSE_TYPE, $9);
+																					}
+|					IF '(' expression ')' '{'  '}' ELSE '{'  '}'					{	
+																						$$ = allot_statement(IF_STATEMENT, NULL, $3);
+																						$$->if_node->false_node = allot_if_statement_node(ELSE_TYPE, NULL);
+																					}
+|					IF '(' expression ')' '{' body '}' else_ifs ELSE '{' body '}'	{
+																						$$ = allot_statement(IF_STATEMENT, $6, $3);
+																						$$->if_node->false_node = $8->else_if_begin;
+																						$8->else_if_end->false_node = allot_if_statement_node(ELSE_TYPE, $11);
+																					}
+|					IF '(' expression ')' '{'  '}' else_ifs ELSE '{' body '}'		{
+																						$$ = allot_statement(IF_STATEMENT, NULL, $3);
+																						$$->if_node->false_node = $7->else_if_begin;
+																						$7->else_if_end->false_node = allot_if_statement_node(ELSE_TYPE, $10);
+																					}
+|					IF '(' expression ')' '{' body '}' else_ifs ELSE '{'  '}'		{
+																						$$ = allot_statement(IF_STATEMENT, $6, $3);
+																						$$->if_node->false_node = $8->else_if_begin;
+																						$8->else_if_end->false_node = allot_if_statement_node(ELSE_TYPE, NULL);
+																					}
+|					IF '(' expression ')' '{' '}' else_ifs ELSE '{'  '}'			{
+																						$$ = allot_statement(IF_STATEMENT, NULL, $3);
+																						$$->if_node->false_node = $7->else_if_begin;
+																						$7->else_if_end->false_node = allot_if_statement_node(ELSE_TYPE, NULL);
+																					}
+|					IF '(' expression ')' '{' body '}' else_ifs 					{
+																						$$ = allot_statement(IF_STATEMENT, $6, $3);
+																						$$->if_node->false_node = $8->else_if_begin;
+																					}	
+|					IF '(' expression ')' '{'  '}' else_ifs 						{
+																						$$ = allot_statement(IF_STATEMENT, NULL, $3);
+																						$$->if_node->false_node = $7->else_if_begin;
+																					}	
+;
+
+else_ifs : 			ELSE IF '(' expression ')' '{' body '}'							{
+																						$$ = (struct else_if_helper*)malloc(sizeof(struct else_if_helper));
+																						$$->else_if_begin = allot_if_statement_node(ELSE_IF_TYPE, $7, $4);
+																						$$->else_if_end = $$->else_if_begin;
+																					}
+|					ELSE IF '(' expression ')' '{'  '}'								{
+																						$$ = (struct else_if_helper*)malloc(sizeof(struct else_if_helper));
+																						$$->else_if_begin = allot_if_statement_node(ELSE_IF_TYPE, NULL, $4);
+																						$$->else_if_end = $$->else_if_begin;
+																					}
+|			   		else_ifs ELSE IF '(' expression ')' '{' body '}'				{	
+																						$1->else_if_end->false_node = allot_if_statement_node(ELSE_IF_TYPE, $8, $5);
+																						$1->else_if_end = $1->else_if_end->false_node;
+																						$$ = $1;	
+																					}	
+|			   		else_ifs ELSE IF '(' expression ')' '{'  '}'					{	
+																						$1->else_if_end->false_node = allot_if_statement_node(ELSE_IF_TYPE, NULL, $5);
+																						$1->else_if_end = $1->else_if_end->false_node;
+																						$$ = $1;	
+																					}	
+;
+
+expression : 	'(' expression ')'	%prec PAREN					{ 	$$ = $2; 					}
+| 				'-' expression		%prec UMINUS				{	
+																	$$ = allot_expression_node(UNARY_MINUS, $2);
+																	/* storing expression as right child */
+																}
+| 				ID '=' expression								{
+																	$$ = allot_expression_node(ASSIGN,  allot_expression_node(VAR, lookup($1, VARIABLE)), $3);
+																}
+|				ID '[' expression ']' '=' expression		 	{
+																	$$ = allot_expression_node(ASSIGN,  allot_expression_node(ARRAY_LOC, lookup($1, ARRAY), $3), $6);
+																}
+|				ID '[' expression ']'							{
+																	$$ = allot_expression_node(ARRAY_LOC, lookup($1, ARRAY), $3);
+																}
+| 				ID												{ 
+																	$$ = allot_expression_node(VAR, lookup($1, VARIABLE));
+																}
+| 				INT_NUMBER										{					
+																	$$ = allot_expression_node(NUM, $1);
+																}	
+|				expression '+' expression 						{	$$ = allot_expression_node(PLUS, $1, $3); 			}
+|				expression '-' expression 						{	$$ = allot_expression_node(MINUS, $1, $3);			}
+|				expression '*' expression 						{	$$ = allot_expression_node(MUL, $1, $3);			}
+|				expression '/' expression 						{	$$ = allot_expression_node(DIV, $1, $3);			}
+|				expression '%' expression						{	$$ = allot_expression_node(MOD, $1, $3);			}
+|				expression GREATER_THAN expression 				{	$$ = allot_expression_node(GT, $1, $3);				}
+|				expression GREATER_THAN_OR_EQUAL_TO expression 	{	$$ = allot_expression_node(GTEQ, $1, $3);			}
+|				expression LESS_THAN expression 				{	$$ = allot_expression_node(LT, $1, $3);				}
+|				expression LESS_THAN_OR_EQUAL_TO expression 	{	$$ = allot_expression_node(LTEQ, $1, $3);			}
+|				expression IS_EQUAL expression 					{	$$ = allot_expression_node(EQEQ, $1, $3);			}
+|				expression IS_NOT_EQUAL expression 				{	$$ = allot_expression_node(NTEQ, $1, $3);			}
+|				PLUS_PLUS ID 	%prec PRE_PLUS_PLUS								{	$$ = allot_expression_node(PRE_INCREMENT, allot_expression_node(VAR, lookup($2, VARIABLE))); 				}
+|				PLUS_PLUS ID '[' expression ']' %prec PRE_PLUS_PLUS				{	$$ = allot_expression_node(PRE_INCREMENT, allot_expression_node(ARRAY_LOC, lookup($2, ARRAY), $4)); 		}
+|				MINUS_MINUS ID 	%prec PRE_MINUS_MINUS							{	$$ = allot_expression_node(PRE_DECREMENT, allot_expression_node(VAR, lookup($2, VARIABLE)));   				}
+|				MINUS_MINUS ID '[' expression ']' 	%prec PRE_MINUS_MINUS		{	$$ = allot_expression_node(PRE_DECREMENT, allot_expression_node(ARRAY_LOC, lookup($2, ARRAY), $4));   		}
+|				ID PLUS_PLUS 	%prec POST_PLUS_PLUS							{	$$ = allot_expression_node(POST_INCREMENT, allot_expression_node(VAR, lookup($1, VARIABLE)));				}
+|				ID '[' expression ']' PLUS_PLUS 	%prec POST_PLUS_PLUS		{	$$ = allot_expression_node(POST_INCREMENT, allot_expression_node(ARRAY_LOC, lookup($1, ARRAY), $3));		}
+| 				ID MINUS_MINUS 	%prec POST_MINUS_MINUS							{	$$ = allot_expression_node(POST_DECREMENT, allot_expression_node(VAR, lookup($1, VARIABLE)));				}
+| 				ID '[' expression ']' MINUS_MINUS 	%prec POST_MINUS_MINUS		{	$$ = allot_expression_node(POST_DECREMENT, allot_expression_node(ARRAY_LOC, lookup($1, ARRAY), $3));		}
+;
+
+for_production :	FOR '(' expression 	TERMINATOR 	expression 	TERMINATOR expression 	')' '{' body	'}'	{ 	$$ = allot_statement(FOR_STATEMENT, $3, $5, $7, $10); }
+|					FOR '(' 			TERMINATOR 	expression 	TERMINATOR expression 	')' '{' body 	'}'	{ 	$$ = allot_statement(FOR_STATEMENT, NULL, $4, $6, $9); }
+|					FOR '(' expression 	TERMINATOR  			TERMINATOR expression 	')' '{' body 	'}'	{ 	$$ = allot_statement(FOR_STATEMENT, $3, NULL, $6, $9); }
+|					FOR '(' expression 	TERMINATOR 	expression 	TERMINATOR 				')' '{' body 	'}'	{ 	$$ = allot_statement(FOR_STATEMENT, $3, $5, NULL, $9); }
+|					FOR '(' expression 	TERMINATOR 	expression 	TERMINATOR expression 	')' '{' 		'}'	{ 	$$ = allot_statement(FOR_STATEMENT, $3, $5, $7, NULL); }
+|					FOR '(' 			TERMINATOR  			TERMINATOR expression 	')' '{' body 	'}'	{ 	$$ = allot_statement(FOR_STATEMENT, NULL, NULL, $5, $8); }
+|					FOR '(' 			TERMINATOR  expression	TERMINATOR 			 	')' '{' body 	'}'	{ 	$$ = allot_statement(FOR_STATEMENT, NULL, $4, NULL, $8); }
+|					FOR '(' 			TERMINATOR  expression	TERMINATOR expression 	')' '{' 	 	'}'	{ 	$$ = allot_statement(FOR_STATEMENT, NULL, $4, $6, NULL); }
+|					FOR '(' expression 	TERMINATOR 			 	TERMINATOR  			')' '{' body 	'}'	{ 	$$ = allot_statement(FOR_STATEMENT, $3, NULL, NULL, $8); }
+|					FOR '(' expression 	TERMINATOR 			 	TERMINATOR expression	')' '{' 	 	'}'	{ 	$$ = allot_statement(FOR_STATEMENT, $3, NULL, $6, NULL); }
+|					FOR '(' expression 	TERMINATOR  expression 	TERMINATOR  			')' '{'  	 	'}'	{ 	$$ = allot_statement(FOR_STATEMENT, $3, $5, NULL, NULL); }
+|					FOR '(' expression 	TERMINATOR 	 			TERMINATOR  			')' '{' 		'}'	{ 	$$ = allot_statement(FOR_STATEMENT, $3, NULL, NULL, NULL); }
+|					FOR '(' 			TERMINATOR	expression 	TERMINATOR  			')' '{' 		'}'	{ 	$$ = allot_statement(FOR_STATEMENT, NULL, $4, NULL, NULL); }
+|					FOR '(' 			TERMINATOR  			TERMINATOR expression 	')' '{' 		'}'	{ 	$$ = allot_statement(FOR_STATEMENT, NULL, NULL, $5, NULL); }
+|					FOR '(' 			TERMINATOR  			TERMINATOR  			')' '{' body 	'}'	{ 	$$ = allot_statement(FOR_STATEMENT, NULL, NULL, NULL, $7); }
+|					FOR '(' 			TERMINATOR  			TERMINATOR 			 	')' '{' 		'}'	{ 	$$ = allot_statement(FOR_STATEMENT, NULL, NULL, NULL, NULL); }
 ;
 
 %%
@@ -338,8 +429,11 @@ int main(int argc, char* argv[]){
 		yyin = fp;
 	}
 	yyparse();
-	// printSymbolTable();
+	printSymbolTable();
 	// printSequence();
+	char *tabs = malloc(sizeof(char)); 
+	printf("\n--------Syntax tree--------\n");
+	print_root(root, tabs);
 	return 0;
 }	
 
@@ -355,3 +449,4 @@ void yyerror(char* msg){
 
 // if if else ambigiuity we need to see 
 // initializations are not allowed in declaration_block
+// how to handle the issue of a body being emty

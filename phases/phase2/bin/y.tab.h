@@ -59,22 +59,30 @@ extern int yydebug;
     INT = 260,                     /* INT  */
     BEGIN_DECL = 261,              /* BEGIN_DECL  */
     END_DECL = 262,                /* END_DECL  */
-    BEGIN_BODY = 263,              /* BEGIN_BODY  */
-    END_BODY = 264,                /* END_BODY  */
+    PROGRAM_BEGIN = 263,           /* PROGRAM_BEGIN  */
+    PROGRAM_END = 264,             /* PROGRAM_END  */
     TERMINATOR = 265,              /* TERMINATOR  */
-    PRINT_STATEMENT = 266,         /* PRINT_STATEMENT  */
+    WRITE = 266,                   /* WRITE  */
     IF = 267,                      /* IF  */
     ELSE = 268,                    /* ELSE  */
     FOR = 269,                     /* FOR  */
     BREAK = 270,                   /* BREAK  */
     CONTINUE = 271,                /* CONTINUE  */
-    GREATER_THAN = 272,            /* GREATER_THAN  */
-    GREATER_THAN_OR_EQUAL_TO = 273, /* GREATER_THAN_OR_EQUAL_TO  */
-    LESS_THAN = 274,               /* LESS_THAN  */
-    LESS_THAN_OR_EQUAL_TO = 275,   /* LESS_THAN_OR_EQUAL_TO  */
-    IS_EQUAL = 276,                /* IS_EQUAL  */
-    IS_NOT_EQUAL = 277,            /* IS_NOT_EQUAL  */
-    UMINUS = 278                   /* UMINUS  */
+    PLUS_PLUS = 272,               /* PLUS_PLUS  */
+    MINUS_MINUS = 273,             /* MINUS_MINUS  */
+    GREATER_THAN = 274,            /* GREATER_THAN  */
+    GREATER_THAN_OR_EQUAL_TO = 275, /* GREATER_THAN_OR_EQUAL_TO  */
+    LESS_THAN = 276,               /* LESS_THAN  */
+    LESS_THAN_OR_EQUAL_TO = 277,   /* LESS_THAN_OR_EQUAL_TO  */
+    IS_EQUAL = 278,                /* IS_EQUAL  */
+    IS_NOT_EQUAL = 279,            /* IS_NOT_EQUAL  */
+    UMINUS = 280,                  /* UMINUS  */
+    PRE_PLUS_PLUS = 281,           /* PRE_PLUS_PLUS  */
+    PRE_MINUS_MINUS = 282,         /* PRE_MINUS_MINUS  */
+    ACCESS = 283,                  /* ACCESS  */
+    POST_PLUS_PLUS = 284,          /* POST_PLUS_PLUS  */
+    POST_MINUS_MINUS = 285,        /* POST_MINUS_MINUS  */
+    PAREN = 286                    /* PAREN  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -88,22 +96,30 @@ extern int yydebug;
 #define INT 260
 #define BEGIN_DECL 261
 #define END_DECL 262
-#define BEGIN_BODY 263
-#define END_BODY 264
+#define PROGRAM_BEGIN 263
+#define PROGRAM_END 264
 #define TERMINATOR 265
-#define PRINT_STATEMENT 266
+#define WRITE 266
 #define IF 267
 #define ELSE 268
 #define FOR 269
 #define BREAK 270
 #define CONTINUE 271
-#define GREATER_THAN 272
-#define GREATER_THAN_OR_EQUAL_TO 273
-#define LESS_THAN 274
-#define LESS_THAN_OR_EQUAL_TO 275
-#define IS_EQUAL 276
-#define IS_NOT_EQUAL 277
-#define UMINUS 278
+#define PLUS_PLUS 272
+#define MINUS_MINUS 273
+#define GREATER_THAN 274
+#define GREATER_THAN_OR_EQUAL_TO 275
+#define LESS_THAN 276
+#define LESS_THAN_OR_EQUAL_TO 277
+#define IS_EQUAL 278
+#define IS_NOT_EQUAL 279
+#define UMINUS 280
+#define PRE_PLUS_PLUS 281
+#define PRE_MINUS_MINUS 282
+#define ACCESS 283
+#define POST_PLUS_PLUS 284
+#define POST_MINUS_MINUS 285
+#define PAREN 286
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -113,9 +129,9 @@ union YYSTYPE
 	int int_value;								
 	char* name;									
 	struct block* block_ptr;
-	struct statement_node* one_statement;
-	enum class expression_node_type expr_type;			
+	struct statement_node* one_statement;		
 	struct expression_node* expr;
+	struct else_if_helper* aux;
 
 
 };

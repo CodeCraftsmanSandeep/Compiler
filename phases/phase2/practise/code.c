@@ -54,5 +54,10 @@ int main() {
 	if(i = 1){
 		printf("sandeep\n");
 	}
+	int a, b, c;
+	// a + b = c;
+	int arr[100];
+	arr[1010];
+	break;
     return 0;
 }

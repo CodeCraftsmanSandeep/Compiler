@@ -1,10 +1,9 @@
 
 %{
-#include "y.tab.hpp"
+#include "y.tab.h"
 struct symbol_table;
 extern struct symbol_table* lookup(char*);
 extern struct symbol_table* declare_variable(char*);
-extern bool DECLARATION_PHASE;
 extern int lineno;
 extern char* my_text;
 
@@ -15,9 +14,9 @@ extern char* my_text;
 
 "decl"						{ return BEGIN_DECL;		/* need to change */			}
 "enddecl"					{ return END_DECL;											}
-"begin"						{ return BEGIN_BODY;												}
-"end"  						{ return END_BODY;												}
-"write"						{ return PRINT_STATEMENT;	/* need to change */			}
+"begin"						{ return PROGRAM_BEGIN;												}
+"end"  						{ return PROGRAM_END;												}
+"write"						{ return WRITE;	/* need to change */			}
 "integer" 					{ return INT; 												}
 [0-9][0-9]*     			{ yylval.int_value = atoi(yytext); return INT_NUMBER;		}
 ";"							{ return TERMINATOR;										}
@@ -31,6 +30,8 @@ extern char* my_text;
 "<="						{ return LESS_THAN_OR_EQUAL_TO;								}
 "=="						{ return IS_EQUAL;											}
 "!="						{ return IS_NOT_EQUAL;										}
+"++"						{ return PLUS_PLUS; 	}
+"--"						{ return MINUS_MINUS;	}
 "if"						{ return IF;												}
 "else"						{ return ELSE;												}
 "for"						{ return FOR;												}
