@@ -23,7 +23,7 @@ NOTE:
 
 # Output
 The output of this phase of the compiler is to print symbol table entries and abstract syntax tree. <br/>
-Let's have a look at the following test_case : (![test_case6](test_cases/6.prog)) <br/>
+Let's have a look at the following test_case : ([test_case6](test_cases/6.prog)) <br/>
 	decl
 		integer key;
 		integer mid, temp;
