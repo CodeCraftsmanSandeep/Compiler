@@ -1,0 +1,26 @@
+
+------Symbol table entries------
+	Variable 'a' 
+	Array		: e (size =  1 )
+	Variable 'b' 
+	Variable 'c' 
+	Array		: d (size =  100 )
+------End of symbol table entries------
+
+--------Syntax tree--------
+Declaration
+	Variable	: a
+	Array		: e (size =  1  )
+	Variable	: b
+	Variable	: c
+	Array		: d (size =  100  )
+Body
+	Break statement
+	Continue statement
+	( 2 ) Add (( 3 ) Mul ( 4 ))
+	( a ) Assign ((( 100 ) Sub ( 50 )) Add (( 25 ) Mul ( 6 )))
+	( (d[( 2 ) Mul ( 3 )]) ) Assign ( 100 )
+	( a ) Assign ((Unary_minus  50 ) )
+	PRINT :  (d[( 2 ) Mul ( 10 )]) 
+	PRINT :  (d[(Unary_minus  100 ) ]) 
+	PRINT : (( 100 ) Mul ( 100 )) Add (( 2 ) Mul ( 9 ))

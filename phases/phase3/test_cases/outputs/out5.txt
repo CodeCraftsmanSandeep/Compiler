@@ -1,0 +1,30 @@
+
+------Symbol table entries------
+	Array		: array (size =  10 )
+	Variable 'key' 
+	Variable 'mid' 
+	Variable 'temp' 
+	Variable 'test' 
+	Variable 'i' 
+	Variable 'result' 
+------End of symbol table entries------
+
+--------Syntax tree--------
+Declaration
+	Array		: array (size =  10  )
+	Variable	: key
+	Variable	: mid
+	Variable	: temp
+	Variable	: test
+	Variable	: i
+	Variable	: result
+Body
+	( i ) Assign ( 0 )
+	( i Post_increment) 
+	For
+	Expr1: ( i ) Assign ( 0 )
+	Expr2: ( i ) Less_than ( 10 )
+	Expr3: (Pre_decrement i ) 
+	Body
+		( (array[ test ]) ) Assign ( test )
+		( test ) Assign (( test ) Add ( 1 ))

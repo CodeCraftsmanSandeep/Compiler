@@ -1,0 +1,6 @@
+
+Empty symbol table
+
+--------Syntax tree--------
+Body
+	Empty

@@ -1,0 +1,16 @@
+
+------Symbol table entries------
+	Variable 'a' 
+	Array		: b (size =  2 )
+	Array		: c (size =  30 )
+	Variable 'd' 
+	Array		: e (size =  100 )
+------End of symbol table entries------
+
+--------Syntax tree--------
+Declaration
+	Variable	: a
+	Array		: b (size =  2  )
+	Array		: c (size =  30  )
+	Variable	: d
+	Array		: e (size =  100  )
