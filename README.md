@@ -1,5 +1,5 @@
-# SCT - Simple Compiler Tool 
-<br/>
+
+# SCT - Simple Compiler Tool
 This repositry contains compiler I built from scratch. Here after the compiler is called SCT(Simple Compiler Tool).<br/>
 
 Synopsis <br/>
@@ -19,8 +19,8 @@ Each phase contains a detailed description of the constructs supported in respec
 ## Structure of each phase
 inc repo contains all include files (headers). <br/>
 src repo contains source code (compiler.l, compiler.y) <br/>
-bin repo is used to generate the output files after make all ([see below](## How can you use SCT)) <br/>
-Makefile contains all needed commands to compiler ([see below](## How can you use SCT)) <br/>
+bin repo is used to generate the output files after make all ([see below](##HowcanyouuseSCT)) <br/>
+Makefile contains all needed commands to compiler ([see below](##HowcanyouuseSCT)) <br/>
 
 ## How can you use SCT ??
 Use Makefile <br/>
@@ -51,10 +51,5 @@ Makefile has all the commands to compile the codes in a phase. <br/>
 ## What are the possible exentsions to SCT ??
 
 
-
-```markdown
-[Link to Introduction](## How can you use SCT ??)
-```
-
-
 I am happy to receive any comments(if any) related to SCT. <br/>
+
