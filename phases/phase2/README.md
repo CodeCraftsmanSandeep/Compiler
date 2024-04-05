@@ -50,7 +50,7 @@ Let's have a look at the following test_case : ([test_case6](test_cases/6.prog))
 		write(-2, -10);
 	end
 
-For getting output, use command $./bin/compiler.out < test_cases/6.prog <br/>
+For getting output, use command **$./bin/compiler.out < test_cases/6.prog** <br/>
 Output of the above test_case : <br/>
 
 	------Symbol table entries------
