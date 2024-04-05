@@ -1,0 +1,31 @@
+10
+-11
+-10
+
+--Symbol table entries--
+variable 'var1': 10
+variable 'var2': -11
+variable 'var3': -10
+--End of symbol table entries--
+
+--Start of sequence--
+Begin of declaration (Line 1)
+	Line 2 : Declaring var1
+	Line 2 : Declaring var2
+	Line 2 : Declaring var3
+End of declaration (Line 3)
+Assignment(Line 5)
+	var1 ASSIGN NUM 
+Assignment(Line 6)
+	var3 ASSIGN NUM 
+Assignment(Line 7)
+	var2 ASSIGN var1 SUB NUM 
+Assignment(Line 8)
+	var2 ASSIGN var1 SUB NUM 
+Assignment(Line 9)
+	var2 ASSIGN var2 SUB var1 
+Print call (Line 10)
+	var1 
+	var2 
+	var3 
+--End of sequence--

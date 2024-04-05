@@ -1,0 +1,1 @@
+Line number = 6, Compilation error: Varaible 'var2' is not declared

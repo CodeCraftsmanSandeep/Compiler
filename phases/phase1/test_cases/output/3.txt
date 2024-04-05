@@ -1,0 +1,27 @@
+10
+30
+300
+
+--Symbol table entries--
+variable 'var1': 10
+variable 'var2': 30
+variable 'var3': 300
+--End of symbol table entries--
+
+--Start of sequence--
+Begin of declaration (Line 1)
+	Line 2 : Declaring var1
+	Line 2 : Declaring var2
+	Line 2 : Declaring var3
+End of declaration (Line 3)
+Assignment(Line 5)
+	var1 ASSIGN NUM 
+Assignment(Line 6)
+	var2 ASSIGN var1 ADD NUM 
+Assignment(Line 7)
+	var3 ASSIGN var1 MUL var2 
+Print call (Line 8)
+	var1 
+	var2 
+	var3 
+--End of sequence--

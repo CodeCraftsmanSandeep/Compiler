@@ -1,0 +1,12 @@
+13
+2
+
+Empty symbol table
+
+--Start of sequence--
+Begin of declaration (Line 1)
+End of declaration (Line 3)
+Print call (Line 5)
+	NUM MUL NUM ADD NUM 
+	NUM 
+--End of sequence--

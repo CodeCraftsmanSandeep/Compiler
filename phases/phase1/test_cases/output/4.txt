@@ -1,0 +1,39 @@
+10
+20
+200
+-10
+190
+
+--Symbol table entries--
+variable 'a': 10
+variable 'b': 20
+variable 'c': 200
+variable 'd': -10
+variable 'e': 190
+--End of symbol table entries--
+
+--Start of sequence--
+Begin of declaration (Line 1)
+	Line 2 : Declaring a
+	Line 2 : Declaring b
+	Line 2 : Declaring c
+	Line 2 : Declaring d
+	Line 2 : Declaring e
+End of declaration (Line 3)
+Assignment(Line 5)
+	a ASSIGN NUM 
+Assignment(Line 6)
+	b ASSIGN NUM 
+Assignment(Line 7)
+	c ASSIGN a MUL b 
+Assignment(Line 8)
+	d ASSIGN a SUB b 
+Assignment(Line 9)
+	e ASSIGN c ADD d 
+Print call (Line 10)
+	a 
+	b 
+	c 
+	d 
+	e 
+--End of sequence--

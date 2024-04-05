@@ -1,0 +1,19 @@
+-10
+
+--Symbol table entries--
+variable 'a': -10
+varaible 'b': Unintialized
+varaible 'c': Unintialized
+--End of symbol table entries--
+
+--Start of sequence--
+Begin of declaration (Line 1)
+	Line 2 : Declaring a
+	Line 2 : Declaring b
+	Line 2 : Declaring c
+End of declaration (Line 3)
+Assignment(Line 5)
+	a ASSIGN NUM 
+Print call (Line 6)
+	a 
+--End of sequence--
