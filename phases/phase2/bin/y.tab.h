@@ -63,26 +63,27 @@ extern int yydebug;
     PROGRAM_END = 264,             /* PROGRAM_END  */
     TERMINATOR = 265,              /* TERMINATOR  */
     WRITE = 266,                   /* WRITE  */
-    IF = 267,                      /* IF  */
-    ELSE = 268,                    /* ELSE  */
-    FOR = 269,                     /* FOR  */
-    BREAK = 270,                   /* BREAK  */
-    CONTINUE = 271,                /* CONTINUE  */
-    PLUS_PLUS = 272,               /* PLUS_PLUS  */
-    MINUS_MINUS = 273,             /* MINUS_MINUS  */
-    GREATER_THAN = 274,            /* GREATER_THAN  */
-    GREATER_THAN_OR_EQUAL_TO = 275, /* GREATER_THAN_OR_EQUAL_TO  */
-    LESS_THAN = 276,               /* LESS_THAN  */
-    LESS_THAN_OR_EQUAL_TO = 277,   /* LESS_THAN_OR_EQUAL_TO  */
-    IS_EQUAL = 278,                /* IS_EQUAL  */
-    IS_NOT_EQUAL = 279,            /* IS_NOT_EQUAL  */
-    UMINUS = 280,                  /* UMINUS  */
-    PRE_PLUS_PLUS = 281,           /* PRE_PLUS_PLUS  */
-    PRE_MINUS_MINUS = 282,         /* PRE_MINUS_MINUS  */
-    ACCESS = 283,                  /* ACCESS  */
-    POST_PLUS_PLUS = 284,          /* POST_PLUS_PLUS  */
-    POST_MINUS_MINUS = 285,        /* POST_MINUS_MINUS  */
-    PAREN = 286                    /* PAREN  */
+    READ = 267,                    /* READ  */
+    IF = 268,                      /* IF  */
+    ELSE = 269,                    /* ELSE  */
+    FOR = 270,                     /* FOR  */
+    BREAK = 271,                   /* BREAK  */
+    CONTINUE = 272,                /* CONTINUE  */
+    PLUS_PLUS = 273,               /* PLUS_PLUS  */
+    MINUS_MINUS = 274,             /* MINUS_MINUS  */
+    GREATER_THAN = 275,            /* GREATER_THAN  */
+    GREATER_THAN_OR_EQUAL_TO = 276, /* GREATER_THAN_OR_EQUAL_TO  */
+    LESS_THAN = 277,               /* LESS_THAN  */
+    LESS_THAN_OR_EQUAL_TO = 278,   /* LESS_THAN_OR_EQUAL_TO  */
+    IS_EQUAL = 279,                /* IS_EQUAL  */
+    IS_NOT_EQUAL = 280,            /* IS_NOT_EQUAL  */
+    UMINUS = 281,                  /* UMINUS  */
+    PRE_PLUS_PLUS = 282,           /* PRE_PLUS_PLUS  */
+    PRE_MINUS_MINUS = 283,         /* PRE_MINUS_MINUS  */
+    ACCESS = 284,                  /* ACCESS  */
+    POST_PLUS_PLUS = 285,          /* POST_PLUS_PLUS  */
+    POST_MINUS_MINUS = 286,        /* POST_MINUS_MINUS  */
+    PAREN = 287                    /* PAREN  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -100,26 +101,27 @@ extern int yydebug;
 #define PROGRAM_END 264
 #define TERMINATOR 265
 #define WRITE 266
-#define IF 267
-#define ELSE 268
-#define FOR 269
-#define BREAK 270
-#define CONTINUE 271
-#define PLUS_PLUS 272
-#define MINUS_MINUS 273
-#define GREATER_THAN 274
-#define GREATER_THAN_OR_EQUAL_TO 275
-#define LESS_THAN 276
-#define LESS_THAN_OR_EQUAL_TO 277
-#define IS_EQUAL 278
-#define IS_NOT_EQUAL 279
-#define UMINUS 280
-#define PRE_PLUS_PLUS 281
-#define PRE_MINUS_MINUS 282
-#define ACCESS 283
-#define POST_PLUS_PLUS 284
-#define POST_MINUS_MINUS 285
-#define PAREN 286
+#define READ 267
+#define IF 268
+#define ELSE 269
+#define FOR 270
+#define BREAK 271
+#define CONTINUE 272
+#define PLUS_PLUS 273
+#define MINUS_MINUS 274
+#define GREATER_THAN 275
+#define GREATER_THAN_OR_EQUAL_TO 276
+#define LESS_THAN 277
+#define LESS_THAN_OR_EQUAL_TO 278
+#define IS_EQUAL 279
+#define IS_NOT_EQUAL 280
+#define UMINUS 281
+#define PRE_PLUS_PLUS 282
+#define PRE_MINUS_MINUS 283
+#define ACCESS 284
+#define POST_PLUS_PLUS 285
+#define POST_MINUS_MINUS 286
+#define PAREN 287
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED

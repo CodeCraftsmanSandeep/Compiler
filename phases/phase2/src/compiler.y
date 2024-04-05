@@ -5,8 +5,8 @@
 #include <string.h>
 #include <stdarg.h>
 
-#include "symbol_table.h"
 #include "expression_tree.h"
+#include "symbol_table.h"
 
 #include "sequence.h"
 extern struct block* allot_block();
@@ -58,6 +58,7 @@ int nested_for_count = 0;
 %type 	<aux> else_ifs;
 
 %type 	<block_ptr> print_values;
+%type 	<block_ptr> read_values;
 
 %type 	<one_statement> for_production;
 
@@ -69,6 +70,7 @@ int nested_for_count = 0;
 %token PROGRAM_END
 %token TERMINATOR
 %token WRITE
+%token READ
 %token IF
 %token ELSE
 %token FOR
@@ -95,6 +97,8 @@ int nested_for_count = 0;
 
 // need to handle precedence of parenthesis operator, and '[' ']'. How to ??
 %%
+		// if(!trav->isInitialized) printf("uinitialised");
+		// else printf("initialised");
 
 
 program: 		declaration_block					{
@@ -150,12 +154,12 @@ decl_types:		ID									{
 														$1->block_end = $1->block_end->next;
 														$$ = $1;
 													}
-	|		ID '[' INT_NUMBER ']' 					{
+	|		ID '[' expression ']' 					{
 														$$ = allot_block();
 														$$->block_start = allot_statement(DECLARATION, ARRAY, $1, $3);
 														$$->block_end = $$->block_start;
 													}
-	| 		decl_types ',' ID '[' INT_NUMBER ']'	{
+	| 		decl_types ',' ID '[' expression ']'	{
 														$1->block_end->next = allot_statement(DECLARATION, ARRAY, $3, $5);
 														$1->block_end->next->prev = $1->block_end->next;
 														$1->block_end = $1->block_end->next;
@@ -180,14 +184,12 @@ body: 		BREAK TERMINATOR					{
 														$$ = allot_block();
 														$$->block_start = allot_statement(BREAK_STATEMENT);;
 														$$->block_end = $$->block_start;
-														$$->is_break = true;
 													}else{
 														$1->block_end->next = allot_statement(BREAK_STATEMENT);
 														$1->block_end->next->prev = $1->block_end;
 														$1->block_end = $1->block_end->next;
 														$$ = $1;
-														$$->is_break = true;
-
+													
 													}
 												}
 |			CONTINUE TERMINATOR					{	
@@ -230,6 +232,19 @@ body: 		BREAK TERMINATOR					{
 																			$$ = $3;
 																		}
 |			body WRITE '(' print_values ')' TERMINATOR					{  			
+																			if($1 == NULL){
+																				$$ = $4;
+																			}else{
+																				$1->block_end->next = $4->block_start;
+																				$1->block_end->next->prev = $1->block_end;
+																				$1->block_end = $4->block_end;
+																				$$ = $1;
+																			}
+																		}
+| 			READ '(' read_values ')' TERMINATOR							{	
+																			$$ = $3;
+																		}
+|			body READ '(' read_values ')' TERMINATOR					{  			
 																			if($1 == NULL){
 																				$$ = $4;
 																			}else{
@@ -287,6 +302,34 @@ print_values: 		print_values ',' expression					{
 																	$$->block_end = $$->block_start;
 																}
 ;
+
+
+read_values: 		read_values ',' ID							{	
+																	$1->block_end->next = allot_statement(READ_STATEMENT,  allot_expression_node(VAR, lookup($3, VARIABLE)) );
+																	$1->block_end->next->prev = $1->block_end;
+																	$1->block_end = $1->block_end->next;
+																	$$ = $1;
+																}
+|					ID											{	 	
+																	$$ = allot_block();
+																	$$->block_start = allot_statement(READ_STATEMENT,  allot_expression_node(VAR, lookup($1, VARIABLE)) );
+																	$$->block_end = $$->block_start;
+																}
+|					read_values ',' ID '[' expression ']'		{	
+																	$1->block_end->next = allot_statement(READ_STATEMENT,  allot_expression_node(ARRAY_LOC, lookup($3, ARRAY), $5) );
+																	$1->block_end->next->prev = $1->block_end;
+																	$1->block_end = $1->block_end->next;
+																	$$ = $1;
+																}
+|					ID '[' expression ']'						{	 	
+																	$$ = allot_block();
+																	$$->block_start = allot_statement(READ_STATEMENT,  allot_expression_node(ARRAY_LOC, lookup($1, ARRAY), $3) );
+																	$$->block_end = $$->block_start;
+																}
+
+;
+
+
 
 if_statement : 		IF '(' expression ')' '{' body '}' 								{	$$ = allot_statement(IF_STATEMENT, $6, $3); }
 |					IF '(' expression ')' '{'  '}' 									{	$$ = allot_statement(IF_STATEMENT, NULL, $3); }

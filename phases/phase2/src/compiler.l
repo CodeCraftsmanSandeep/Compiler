@@ -16,7 +16,8 @@ extern char* my_text;
 "enddecl"					{ return END_DECL;											}
 "begin"						{ return PROGRAM_BEGIN;												}
 "end"  						{ return PROGRAM_END;												}
-"write"						{ return WRITE;	/* need to change */			}
+"write"						{ return WRITE;				}
+"read"						{ return READ;				}
 "integer" 					{ return INT; 												}
 [0-9][0-9]*     			{ yylval.int_value = atoi(yytext); return INT_NUMBER;		}
 ";"							{ return TERMINATOR;										}

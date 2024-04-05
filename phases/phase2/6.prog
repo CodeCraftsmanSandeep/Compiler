@@ -1,8 +1,7 @@
 decl
-	integer array[10];
 	integer key;
 	integer mid, temp;
-	integer test,i;
+	integer test, array[test+key*2], i;
 	integer start;
 	integer result;
 enddecl
@@ -12,9 +11,15 @@ begin
     for(i=0;i<10;i++) {
 		array[test] = test;
 		test = test + 1;
+		for(i = 0; i < 10; i++){
+			continue;
+			break;
+		}
     }
+	read(mid, array[0]);
 	key=array[5];
     start=1;
     --start;
 	++array[5*8+9*10];
+	write(-2, -10);
 end

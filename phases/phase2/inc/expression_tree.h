@@ -28,12 +28,25 @@ enum  expression_node_type{
 	PRE_INCREMENT,		
 	PRE_DECREMENT		
 };
+enum  declaration_type{
+	VARIABLE,
+	ARRAY
+};
+struct symbol_table{
+    char* name;
+	enum declaration_type type;
+	struct expression_node* size;
+    bool isInitialized;
+    struct symbol_table* next;
+};
+
 
 
 struct array_access{
 	struct symbol_table* sym_ptr; 
 	struct expression_node* index;
 };
+
 struct expression_node{
 	enum expression_node_type type;
 	union{

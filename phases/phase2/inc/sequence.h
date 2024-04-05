@@ -37,15 +37,11 @@ struct if_statement_node* allot_if_statement_node(enum if_type type, struct bloc
 struct block{
 	struct statement_node* block_start;
 	struct statement_node* block_end;
-	bool is_break;
-	bool is_continue;
 };
 struct block* allot_block(){
 	struct block* curr = (struct block*)malloc(sizeof(struct block));
 	curr->block_start = NULL;
 	curr->block_end = NULL;
-	curr->is_break = false;
-	curr->is_continue = false;
 	return curr;
 };
 
@@ -56,7 +52,8 @@ enum statement_type{
 	FOR_STATEMENT,
 	BREAK_STATEMENT,
 	CONTINUE_STATEMENT,
-	PRINT_STATEMENT
+	PRINT_STATEMENT,
+	READ_STATEMENT
 };
 struct statement_node{
 	enum statement_type type;
@@ -89,9 +86,9 @@ struct statement_node* allot_statement(enum statement_type type, ...){
 		enum declaration_type decl_type = va_arg(args, enum declaration_type);
 		char* name = va_arg(args, char*);
 		if(decl_type == VARIABLE){
-			curr->decl_node = insert_entry(decl_type, name, 1); /* symbol table */
+			curr->decl_node = insert_entry(decl_type, name, NULL); /* symbol table */
 		}else if(decl_type == ARRAY){
-			int size = va_arg(args, int);
+			struct expression_node* size = va_arg(args, struct expression_node*);
 			curr->decl_node = insert_entry(decl_type, name, size);
 		}
 		va_end(args);
@@ -123,6 +120,11 @@ struct statement_node* allot_statement(enum statement_type type, ...){
 		va_start(args, type);
 		curr->expr_node = va_arg(args, struct expression_node* );
 		va_end(args);
+	}else if(type == READ_STATEMENT){
+		va_list args;
+		va_start(args, type);
+		curr->expr_node = va_arg(args, struct expression_node* );
+		va_end(args);
 	}
 
 	curr->next = NULL;
@@ -145,7 +147,9 @@ void print_root(struct block* root, char* tabs){
 
 	while(trav != NULL && trav->type == DECLARATION){
 		if(trav->decl_node->type == ARRAY){
-			printf("\tArray		: %s (size = %d)\n", trav->decl_node->name, trav->decl_node->size);
+			printf("\tArray		: %s (size = ", trav->decl_node->name);
+			inorder(trav->decl_node->size);
+			printf(" )\n");
 		}else if(trav->decl_node->type == VARIABLE){
 			printf("\tVariable	: %s\n", trav->decl_node->name);
 		}
@@ -179,6 +183,13 @@ void print_root(struct block* root, char* tabs){
 			case(PRINT_STATEMENT):
 				printf("%s", tabs);
 				printf("PRINT : ");
+				inorder(trav->expr_node);
+				printf("\n");
+				break;
+			
+			case(READ_STATEMENT):
+				printf("%s", tabs);
+				printf("READ : ");
 				inorder(trav->expr_node);
 				printf("\n");
 				break;

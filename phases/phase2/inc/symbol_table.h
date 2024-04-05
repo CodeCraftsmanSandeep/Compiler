@@ -14,26 +14,27 @@ extern char error_string[];
 extern void yyerror(char*);
 #define max_entries 100
 int curr_entries = 0;
+extern void inorder(struct expression_node *);
 
-enum  declaration_type{
-	VARIABLE,
-	ARRAY
-};
-struct symbol_table{
-    char* name;
-	enum declaration_type type;
-	int size;
-    bool isInitialized;
-    struct symbol_table* next;
-};
+// enum  declaration_type{
+// 	VARIABLE,
+// 	ARRAY
+// };
+// struct symbol_table{
+//     char* name;
+// 	enum declaration_type type;
+// 	struct expression_node* size;
+//     bool isInitialized;
+//     struct symbol_table* next;
+// };
 struct symbol_table* head = NULL;
 
-struct symbol_table* allot_entry(enum declaration_type type, char* name, int size){
+struct symbol_table* allot_entry(enum declaration_type type, char* name, struct expression_node* size){
 	struct symbol_table* curr = (struct symbol_table*)malloc(sizeof(struct symbol_table));
 	curr->name = strdup(name);
 	curr->type = type;
 
-	/* a variable has size 1 */
+	/* a variable has size pointer NULL */
 	curr->size = size;
 
 	curr->isInitialized = false;
@@ -41,7 +42,7 @@ struct symbol_table* allot_entry(enum declaration_type type, char* name, int siz
 	return curr;
 }
 
-struct symbol_table* insert_entry(enum declaration_type type, char* name, int size){
+struct symbol_table* insert_entry(enum declaration_type type, char* name, struct expression_node* size){
 	if(head == NULL){
 		curr_entries++;
 		head = allot_entry(type, name, size);
@@ -105,11 +106,16 @@ void printSymbolTable(){
 	while(trav != NULL){
 		
 		if(trav->type == VARIABLE) printf("\tVariable '%s' ", trav->name);
-		else printf("\tArray '%s'(size %d) ", trav->name, trav->size);
+		else{
+			printf("\tArray		: %s (size = ", trav->name);
+			inorder(trav->size);
+			printf(")");
+		}
 		
-		if(!trav->isInitialized) printf("uinitialised\n");
-		else printf("initialised\n");
-
+		// if(!trav->isInitialized) printf("uinitialised");
+		// else printf("initialised");
+		printf("\n");
+		
 		trav = trav->next;
 	}
 	printf("------End of symbol table entries------\n");

@@ -13,15 +13,12 @@ What are the extensions introduced ? <br/>
    7) '%'
 3) Supporting if-else statements. <br/>
 4) Supporting for loop <br/>
-5) break;
-6) continue;
+6) supporting read, break, continue statements
 
 NOTE:
 1) ; is considered as a valid statement (as in C)
 2) A if block with single statement must have { } (unlike in C)
-3) Having break or continue in inapproproate location
-4) return 0 ??
-5) int c, int c[2];  support
+3) Having break or continue in inapproproate location ????????? (how to do this)
 
 # Doubts 
 
