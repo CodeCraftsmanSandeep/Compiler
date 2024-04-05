@@ -19,12 +19,13 @@ Each phase contains a detailed description of the constructs supported in respec
 ## Structure of each phase
 inc repo contains all include files (headers). <br/>
 src repo contains source code (compiler.l, compiler.y) <br/>
-bin repo is used to generate the output files after make all ([see below](How can you use SCT)) <br/>
-Makefile contains all needed commands to compiler (see below) <br/>
+bin repo is used to generate the output files after make all ([see below](##How can you use SCT)) <br/>
+Makefile contains all needed commands to compiler ([see below](##How can you use SCT)) <br/>
 
 ## How can you use SCT ??
 Use Makefile <br/>
 Makefile has all the commands to compile the codes in a phase. <br/>
+
 		INCLUDE=-I./inc/
 	all :
 		yacc -o bin/y.tab.c -d src/compiler.y -ll 
@@ -33,6 +34,7 @@ Makefile has all the commands to compile the codes in a phase. <br/>
 		
 	clean:
 		rm bin/lex.yy.c bin/y.tab.c bin/y.tab.h bin/compiler.out
+		
 **$ make all** creates a final executable compiler.out in bin repo. <br/>
 **$ make clean removes** the contents generated which are generated in bin repo. <br/>
 **$ ./bin/compiler.out will** execute the executable. <br/>
