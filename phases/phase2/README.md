@@ -98,5 +98,3 @@ Output of the above test_case : <br/>
 		(Pre_increment (array[(( 5 ) Mul ( 8 )) Add (( 9 ) Mul ( 10 ))]) ) 
 		PRINT : (Unary_minus  2 ) 
 		PRINT : (Unary_minus  10 ) 
-
-# Doubts
