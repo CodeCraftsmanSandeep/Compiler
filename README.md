@@ -19,8 +19,8 @@ Each phase contains a detailed description of the constructs supported in respec
 ## Structure of each phase
 inc repo contains all include files (headers). <br/>
 src repo contains source code (compiler.l, compiler.y) <br/>
-bin repo is used to generate the output files after make all ([see below](##How-can-you-use-SCT)) <br/>
-Makefile contains all needed commands to compiler ([see below](##How-can-you-use-SCT)) <br/>
+bin repo is used to generate the output files after make all ([see below](##How-can-you-use-SCT-??)) <br/>
+Makefile contains all needed commands to compiler ([see below](##How-can-you-use-SCT-??)) <br/>
 
 ## How can you use SCT ??
 Use Makefile <br/>
