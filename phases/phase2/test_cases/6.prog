@@ -7,19 +7,19 @@ decl
 enddecl
 
 begin
-    test=0;
-    for(i=0;i<10;i++) {
+   	test=0;
+    	for(i=0;i<10;i++) {
 		array[test] = test;
 		test = test + 1;
 		for(i = 0; i < 10; i++){
 			continue;
 			break;
 		}
-    }
+    	}
 	read(mid, array[0]);
 	key=array[5];
-    start=1;
-    --start;
+	start=1;
+	--start;
 	++array[5*8+9*10];
 	write(-2, -10);
 end

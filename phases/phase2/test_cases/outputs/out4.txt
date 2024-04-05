@@ -1,0 +1,32 @@
+
+------Symbol table entries------
+	Variable 'a' 
+	Variable 'b' 
+	Array		: d (size =  100 )
+------End of symbol table entries------
+
+--------Syntax tree--------
+Declaration
+	Variable	: a
+	Variable	: b
+	Array		: d (size =  100  )
+Body
+	( a ) Assign ( 2 )
+	IF
+	Condition: ( a ) Greater_than ( 2 )
+	Body
+		PRINT :  1 
+	IF
+	Condition: ((( a ) Mul ( 2 )) Add ( 3 )) Greater_than ( 100 )
+	Body
+		IF
+		Condition: ((( 2 ) Mul ( 5 )) Add ( b )) Greater_than ((Unary_minus  200 ) )
+		Body
+			PRINT :  100 
+		ELSE
+		Body
+			Empty
+	ELSE IF
+	Condition: ( 2 ) Greater_than ( (d[ 200 ]) )
+	Body
+		Empty
