@@ -53,7 +53,7 @@ Makefile has all the commands to compile the codes in a phase. <br/>
 
 
 ```markdown
-[Link to Introduction](#introduction)
+[Link to Introduction](## How can you use SCT ??)
 ```
 
 
