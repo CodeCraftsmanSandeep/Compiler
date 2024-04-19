@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+char error_string[100];
 
 #include "expression_tree.h"
 #include "symbol_table.h"
@@ -11,13 +12,20 @@
 #include "sequence.h"
 extern struct block* allot_block();
 
+#include "generate_mips.h"
+
 struct symbol_table;
 extern int yylex();
 void yyerror(char*);
 extern char* yytext;
 extern FILE* yyin;
 int lineno = 1;
-char error_string[100];
+
+
+// extern enum class statement_type;
+// extern enum 	 declaration_type;	
+
+// extern struct block;
 
 struct block* root = NULL;
 struct else_if_helper{
@@ -30,53 +38,45 @@ int nested_for_count = 0;
 %}
 
 %union{
-	int int_value;	
-	float float_value;								
+	int int_value;								
 	char* name;									
 	struct block* block_ptr;
 	struct statement_node* one_statement;		
 	struct expression_node* expr;
 	struct else_if_helper* aux;
-	enum datatype* d_type;
-	struct indexes* indexing;
 }
 
-%type <indexing> more_indexes;
+
 %token 	<name> ID
 %token 	<int_value> INT_NUMBER
-%token <float_value> FLOAT_NUMBER;
 %type  	<expr> expression
-%type 	<expr> l_value;
 
 %type  	<block_ptr> body
 %type  	<block_ptr> decl_types
 %type  	<block_ptr> declarations
 %type  	<block_ptr> declaration_block
 %type 	<block_ptr> source_program;
-%type <one_statement> array_production;
+
 %type 	<one_statement> if_statement;
 %type 	<aux> else_ifs;
 
 %type 	<block_ptr> print_values;
+%type 	<block_ptr> read_values;
 
 %type 	<one_statement> for_production;
-%type <one_statement> while_production;
-
-%type <d_type> DATATYPE;
 
 %start program
 
 %token INT
-%token FLOAT
 %token BEGIN_DECL END_DECL
 %token PROGRAM_BEGIN
 %token PROGRAM_END
 %token TERMINATOR
 %token WRITE
+%token READ
 %token IF
 %token ELSE
 %token FOR
-%token WHILE
 %token BREAK
 %token CONTINUE
 %token PLUS_PLUS
@@ -98,7 +98,10 @@ int nested_for_count = 0;
 %left ACCESS POST_PLUS_PLUS POST_MINUS_MINUS
 %left PAREN 
 
+// need to handle precedence of parenthesis operator, and '[' ']'. How to ??
 %%
+		// if(!trav->isInitialized) printf("uinitialised");
+		// else printf("initialised");
 
 
 program: 		declaration_block					{
@@ -128,20 +131,7 @@ declaration_block: 		BEGIN_DECL declarations END_DECL		{
 																}
 ;
 
-declarations: 			DATATYPE decl_types TERMINATOR					{ 	$$ = $2; 
-																			struct statement_node* trav = $$->block_start;
-																			if(*$1 == INT_datatype){
-																				while(trav != NULL){
-																					trav->decl_node->type_of_var = INT_datatype;
-																					trav = trav->next;
-																				}
-																			}else if(*$1 == FLOAT_datatype){
-																				while(trav != NULL){
-																					trav->decl_node->type_of_var = FLOAT_datatype;
-																					trav = trav->next;
-																				}
-																			}
-																		}
+declarations: 			DATATYPE decl_types TERMINATOR					{ 	$$ = $2; }
 |						declarations DATATYPE decl_types TERMINATOR  	{ 
 																			if($1 == NULL){
 																				$$ = $3;
@@ -150,18 +140,6 @@ declarations: 			DATATYPE decl_types TERMINATOR					{ 	$$ = $2;
 																				$3->block_start->prev = $1->block_end;
 																				$1->block_end = $3->block_end;
 																				$$ = $1;
-																			}
-																			struct statement_node* trav = $3->block_start;
-																			if(*$2 == INT_datatype){
-																				while(trav != NULL){
-																					trav->decl_node->type_of_var = INT_datatype;
-																					trav = trav->next;
-																				}
-																			}else if(*$2 == FLOAT_datatype){
-																				while(trav != NULL){
-																					trav->decl_node->type_of_var = FLOAT_datatype;
-																					trav = trav->next;
-																				}
 																			}
 																		}
 | 						TERMINATOR										{ $$ = NULL; }
@@ -179,33 +157,20 @@ decl_types:		ID									{
 														$1->block_end = $1->block_end->next;
 														$$ = $1;
 													}
-|			array_production						{
+	|		ID '[' expression ']' 					{
 														$$ = allot_block();
-														$$->block_start = $1;
+														$$->block_start = allot_statement(DECLARATION, ARRAY, $1, $3);
 														$$->block_end = $$->block_start;
-													}	
-|			decl_types array_production				{
-														$1->block_end->next = $2;
+													}
+	| 		decl_types ',' ID '[' expression ']'	{
+														$1->block_end->next = allot_statement(DECLARATION, ARRAY, $3, $5);
 														$1->block_end->next->prev = $1->block_end->next;
 														$1->block_end = $1->block_end->next;
 														$$ = $1;
 													}
 ;
 
-array_production:	ID more_indexes					{
-														$$ = allot_statement(DECLARATION, ARRAY, $1, $2);
-														// name, indexes
-													}
-;
-
-DATATYPE: 		INT					{ 
-	$$ = (enum datatype*)malloc(sizeof(enum datatype));
-	*$$ = INT_datatype; 
-
-}
-|				FLOAT				{ 
-	$$ = (enum datatype*)malloc(sizeof(enum datatype));
-	*$$ = FLOAT_datatype; }
+DATATYPE: 		INT
 ;
 
 source_program : PROGRAM_BEGIN body PROGRAM_END	{$$ = $2;}
@@ -279,6 +244,19 @@ body: 		BREAK TERMINATOR					{
 																				$$ = $1;
 																			}
 																		}
+| 			READ '(' read_values ')' TERMINATOR							{	
+																			$$ = $3;
+																		}
+|			body READ '(' read_values ')' TERMINATOR					{  			
+																			if($1 == NULL){
+																				$$ = $4;
+																			}else{
+																				$1->block_end->next = $4->block_start;
+																				$1->block_end->next->prev = $1->block_end;
+																				$1->block_end = $4->block_end;
+																				$$ = $1;
+																			}
+																		}
 |			if_statement												{	
 																			$$ = allot_block();
 																			$$->block_start = $1;
@@ -313,25 +291,7 @@ body: 		BREAK TERMINATOR					{
 																				$$ = $1;
 																			}
 																		}
-|			while_production												{
-																			$$ = allot_block();
-																			$$->block_start = $1;
-																			$$->block_end = $1;
-																		}
-| 			body while_production 										{
-																			if($1 == NULL){
-																				$$ = allot_block();
-																				$$->block_start = $2;
-																				$$->block_end = $2;
-																			}else{
-																				$1->block_end->next = $2;
-																				$2->prev = $1->block_end;
-																				$1->block_end = $2;
-																				$$ = $1;
-																			}
-																		}
 ;
-
 
 print_values: 		print_values ',' expression					{	
 																	$1->block_end->next = allot_statement(PRINT_STATEMENT, $3);
@@ -344,6 +304,32 @@ print_values: 		print_values ',' expression					{
 																	$$->block_start = allot_statement(PRINT_STATEMENT, $1);
 																	$$->block_end = $$->block_start;
 																}
+;
+
+
+read_values: 		read_values ',' ID							{	
+																	$1->block_end->next = allot_statement(READ_STATEMENT,  allot_expression_node(VAR, lookup($3, VARIABLE)) );
+																	$1->block_end->next->prev = $1->block_end;
+																	$1->block_end = $1->block_end->next;
+																	$$ = $1;
+																}
+|					ID											{	 	
+																	$$ = allot_block();
+																	$$->block_start = allot_statement(READ_STATEMENT,  allot_expression_node(VAR, lookup($1, VARIABLE)) );
+																	$$->block_end = $$->block_start;
+																}
+|					read_values ',' ID '[' expression ']'		{	
+																	$1->block_end->next = allot_statement(READ_STATEMENT,  allot_expression_node(ARRAY_LOC, lookup($3, ARRAY), $5) );
+																	$1->block_end->next->prev = $1->block_end;
+																	$1->block_end = $1->block_end->next;
+																	$$ = $1;
+																}
+|					ID '[' expression ']'						{	 	
+																	$$ = allot_block();
+																	$$->block_start = allot_statement(READ_STATEMENT,  allot_expression_node(ARRAY_LOC, lookup($1, ARRAY), $3) );
+																	$$->block_end = $$->block_start;
+																}
+
 ;
 
 
@@ -423,14 +409,21 @@ expression : 	'(' expression ')'	%prec PAREN					{ 	$$ = $2; 					}
 																	$$ = allot_expression_node(UNARY_MINUS, $2);
 																	/* storing expression as right child */
 																}
-|				l_value '=' expression							{ $$ = allot_expression_node(ASSIGN, $1, $3); }
-|				l_value											{ $$ = $1; }
+| 				ID '=' expression								{
+																	$$ = allot_expression_node(ASSIGN,  allot_expression_node(VAR, lookup($1, VARIABLE)), $3);
+																}
+|				ID '[' expression ']' '=' expression		 	{
+																	$$ = allot_expression_node(ASSIGN,  allot_expression_node(ARRAY_LOC, lookup($1, ARRAY), $3), $6);
+																}
+|				ID '[' expression ']'							{
+																	$$ = allot_expression_node(ARRAY_LOC, lookup($1, ARRAY), $3);
+																}
+| 				ID												{ 
+																	$$ = allot_expression_node(VAR, lookup($1, VARIABLE));
+																}
 | 				INT_NUMBER										{					
 																	$$ = allot_expression_node(NUM, $1);
-																}
-| 				FLOAT_NUMBER									{					
-																	$$ = allot_expression_node(FLOAT_NUM, $1);
-																}
+																}	
 |				expression '+' expression 						{	$$ = allot_expression_node(PLUS, $1, $3); 			}
 |				expression '-' expression 						{	$$ = allot_expression_node(MINUS, $1, $3);			}
 |				expression '*' expression 						{	$$ = allot_expression_node(MUL, $1, $3);			}
@@ -442,34 +435,15 @@ expression : 	'(' expression ')'	%prec PAREN					{ 	$$ = $2; 					}
 |				expression LESS_THAN_OR_EQUAL_TO expression 	{	$$ = allot_expression_node(LTEQ, $1, $3);			}
 |				expression IS_EQUAL expression 					{	$$ = allot_expression_node(EQEQ, $1, $3);			}
 |				expression IS_NOT_EQUAL expression 				{	$$ = allot_expression_node(NTEQ, $1, $3);			}
-| 				PLUS_PLUS l_value 	%prec PRE_PLUS_PLUS			{	$$ = allot_expression_node(PRE_INCREMENT, $2); 	}
-|				MINUS_MINUS l_value 	%prec PRE_MINUS_MINUS	{	$$ = allot_expression_node(PRE_DECREMENT, $2); 	}
-|				l_value PLUS_PLUS 	%prec POST_PLUS_PLUS		{	$$ = allot_expression_node(POST_INCREMENT, $1); }
-|				l_value MINUS_MINUS %prec POST_MINUS_MINUS		{	$$ = allot_expression_node(POST_DECREMENT, $1); }
+|				PLUS_PLUS ID 	%prec PRE_PLUS_PLUS								{	$$ = allot_expression_node(PRE_INCREMENT, allot_expression_node(VAR, lookup($2, VARIABLE))); 				}
+|				PLUS_PLUS ID '[' expression ']' %prec PRE_PLUS_PLUS				{	$$ = allot_expression_node(PRE_INCREMENT, allot_expression_node(ARRAY_LOC, lookup($2, ARRAY), $4)); 		}
+|				MINUS_MINUS ID 	%prec PRE_MINUS_MINUS							{	$$ = allot_expression_node(PRE_DECREMENT, allot_expression_node(VAR, lookup($2, VARIABLE)));   				}
+|				MINUS_MINUS ID '[' expression ']' 	%prec PRE_MINUS_MINUS		{	$$ = allot_expression_node(PRE_DECREMENT, allot_expression_node(ARRAY_LOC, lookup($2, ARRAY), $4));   		}
+|				ID PLUS_PLUS 	%prec POST_PLUS_PLUS							{	$$ = allot_expression_node(POST_INCREMENT, allot_expression_node(VAR, lookup($1, VARIABLE)));				}
+|				ID '[' expression ']' PLUS_PLUS 	%prec POST_PLUS_PLUS		{	$$ = allot_expression_node(POST_INCREMENT, allot_expression_node(ARRAY_LOC, lookup($1, ARRAY), $3));		}
+| 				ID MINUS_MINUS 	%prec POST_MINUS_MINUS							{	$$ = allot_expression_node(POST_DECREMENT, allot_expression_node(VAR, lookup($1, VARIABLE)));				}
+| 				ID '[' expression ']' MINUS_MINUS 	%prec POST_MINUS_MINUS		{	$$ = allot_expression_node(POST_DECREMENT, allot_expression_node(ARRAY_LOC, lookup($1, ARRAY), $3));		}
 ;
-
-l_value:	ID						{ $$ = allot_expression_node(VAR, lookup($1, VARIABLE));			 }
-|			ID more_indexes			{ $$ = allot_expression_node(ARRAY_LOC, lookup($1, ARRAY, $2), $2);  }
-;
-
-
-more_indexes: 		'[' expression ']'					{ 
-															$$ = (struct indexes*)malloc(sizeof(struct indexes));
-															$$->index = $2;
-															$$->next = NULL;
-														}
-|					'[' expression ']' more_indexes 	{
-															$$ = (struct indexes*)malloc(sizeof(struct indexes));
-															$$->index = $2;
-															$$->next = $4;
-														}
-;
-
-
-while_production: WHILE '(' expression ')' '{' '}'						{ $$ = allot_statement(WHILE_STATEMENT, $3, NULL); }
-|				 WHILE '(' expression ')' '{' body '}'					{ $$ = allot_statement(WHILE_STATEMENT, $3, $6); }
-;
-
 
 for_production :	FOR '(' expression 	TERMINATOR 	expression 	TERMINATOR expression 	')' '{' body	'}'	{ 	$$ = allot_statement(FOR_STATEMENT, $3, $5, $7, $10); }
 |					FOR '(' 			TERMINATOR 	expression 	TERMINATOR expression 	')' '{' body 	'}'	{ 	$$ = allot_statement(FOR_STATEMENT, NULL, $4, $6, $9); }
@@ -491,7 +465,7 @@ for_production :	FOR '(' expression 	TERMINATOR 	expression 	TERMINATOR expressi
 
 %%
 
-int main(int argc, char* argv[]){
+int main(int argc, char* argv[]){	
 	if(argc >= 2){
 		FILE* fp = fopen(argv[1], "r");
 		if(fp == NULL){
@@ -506,6 +480,9 @@ int main(int argc, char* argv[]){
 	char *tabs = malloc(sizeof(char)); 
 	printf("\n--------Syntax tree--------\n");
 	print_root(root, tabs);
+	if(argc >= 2) code_generator(root, argv[1]);
+	else code_generator(root, "dummy.sil");
+
 	return 0;
 }	
 

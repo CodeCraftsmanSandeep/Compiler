@@ -56,36 +56,34 @@ extern int yydebug;
     YYUNDEF = 257,                 /* "invalid token"  */
     ID = 258,                      /* ID  */
     INT_NUMBER = 259,              /* INT_NUMBER  */
-    FLOAT_NUMBER = 260,            /* FLOAT_NUMBER  */
-    INT = 261,                     /* INT  */
-    FLOAT = 262,                   /* FLOAT  */
-    BEGIN_DECL = 263,              /* BEGIN_DECL  */
-    END_DECL = 264,                /* END_DECL  */
-    PROGRAM_BEGIN = 265,           /* PROGRAM_BEGIN  */
-    PROGRAM_END = 266,             /* PROGRAM_END  */
-    TERMINATOR = 267,              /* TERMINATOR  */
-    WRITE = 268,                   /* WRITE  */
-    IF = 269,                      /* IF  */
-    ELSE = 270,                    /* ELSE  */
-    FOR = 271,                     /* FOR  */
-    WHILE = 272,                   /* WHILE  */
-    BREAK = 273,                   /* BREAK  */
-    CONTINUE = 274,                /* CONTINUE  */
-    PLUS_PLUS = 275,               /* PLUS_PLUS  */
-    MINUS_MINUS = 276,             /* MINUS_MINUS  */
-    GREATER_THAN = 277,            /* GREATER_THAN  */
-    GREATER_THAN_OR_EQUAL_TO = 278, /* GREATER_THAN_OR_EQUAL_TO  */
-    LESS_THAN = 279,               /* LESS_THAN  */
-    LESS_THAN_OR_EQUAL_TO = 280,   /* LESS_THAN_OR_EQUAL_TO  */
-    IS_EQUAL = 281,                /* IS_EQUAL  */
-    IS_NOT_EQUAL = 282,            /* IS_NOT_EQUAL  */
-    UMINUS = 283,                  /* UMINUS  */
-    PRE_PLUS_PLUS = 284,           /* PRE_PLUS_PLUS  */
-    PRE_MINUS_MINUS = 285,         /* PRE_MINUS_MINUS  */
-    ACCESS = 286,                  /* ACCESS  */
-    POST_PLUS_PLUS = 287,          /* POST_PLUS_PLUS  */
-    POST_MINUS_MINUS = 288,        /* POST_MINUS_MINUS  */
-    PAREN = 289                    /* PAREN  */
+    INT = 260,                     /* INT  */
+    BEGIN_DECL = 261,              /* BEGIN_DECL  */
+    END_DECL = 262,                /* END_DECL  */
+    PROGRAM_BEGIN = 263,           /* PROGRAM_BEGIN  */
+    PROGRAM_END = 264,             /* PROGRAM_END  */
+    TERMINATOR = 265,              /* TERMINATOR  */
+    WRITE = 266,                   /* WRITE  */
+    READ = 267,                    /* READ  */
+    IF = 268,                      /* IF  */
+    ELSE = 269,                    /* ELSE  */
+    FOR = 270,                     /* FOR  */
+    BREAK = 271,                   /* BREAK  */
+    CONTINUE = 272,                /* CONTINUE  */
+    PLUS_PLUS = 273,               /* PLUS_PLUS  */
+    MINUS_MINUS = 274,             /* MINUS_MINUS  */
+    GREATER_THAN = 275,            /* GREATER_THAN  */
+    GREATER_THAN_OR_EQUAL_TO = 276, /* GREATER_THAN_OR_EQUAL_TO  */
+    LESS_THAN = 277,               /* LESS_THAN  */
+    LESS_THAN_OR_EQUAL_TO = 278,   /* LESS_THAN_OR_EQUAL_TO  */
+    IS_EQUAL = 279,                /* IS_EQUAL  */
+    IS_NOT_EQUAL = 280,            /* IS_NOT_EQUAL  */
+    UMINUS = 281,                  /* UMINUS  */
+    PRE_PLUS_PLUS = 282,           /* PRE_PLUS_PLUS  */
+    PRE_MINUS_MINUS = 283,         /* PRE_MINUS_MINUS  */
+    ACCESS = 284,                  /* ACCESS  */
+    POST_PLUS_PLUS = 285,          /* POST_PLUS_PLUS  */
+    POST_MINUS_MINUS = 286,        /* POST_MINUS_MINUS  */
+    PAREN = 287                    /* PAREN  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -96,51 +94,46 @@ extern int yydebug;
 #define YYUNDEF 257
 #define ID 258
 #define INT_NUMBER 259
-#define FLOAT_NUMBER 260
-#define INT 261
-#define FLOAT 262
-#define BEGIN_DECL 263
-#define END_DECL 264
-#define PROGRAM_BEGIN 265
-#define PROGRAM_END 266
-#define TERMINATOR 267
-#define WRITE 268
-#define IF 269
-#define ELSE 270
-#define FOR 271
-#define WHILE 272
-#define BREAK 273
-#define CONTINUE 274
-#define PLUS_PLUS 275
-#define MINUS_MINUS 276
-#define GREATER_THAN 277
-#define GREATER_THAN_OR_EQUAL_TO 278
-#define LESS_THAN 279
-#define LESS_THAN_OR_EQUAL_TO 280
-#define IS_EQUAL 281
-#define IS_NOT_EQUAL 282
-#define UMINUS 283
-#define PRE_PLUS_PLUS 284
-#define PRE_MINUS_MINUS 285
-#define ACCESS 286
-#define POST_PLUS_PLUS 287
-#define POST_MINUS_MINUS 288
-#define PAREN 289
+#define INT 260
+#define BEGIN_DECL 261
+#define END_DECL 262
+#define PROGRAM_BEGIN 263
+#define PROGRAM_END 264
+#define TERMINATOR 265
+#define WRITE 266
+#define READ 267
+#define IF 268
+#define ELSE 269
+#define FOR 270
+#define BREAK 271
+#define CONTINUE 272
+#define PLUS_PLUS 273
+#define MINUS_MINUS 274
+#define GREATER_THAN 275
+#define GREATER_THAN_OR_EQUAL_TO 276
+#define LESS_THAN 277
+#define LESS_THAN_OR_EQUAL_TO 278
+#define IS_EQUAL 279
+#define IS_NOT_EQUAL 280
+#define UMINUS 281
+#define PRE_PLUS_PLUS 282
+#define PRE_MINUS_MINUS 283
+#define ACCESS 284
+#define POST_PLUS_PLUS 285
+#define POST_MINUS_MINUS 286
+#define PAREN 287
 
 /* Value type.  */
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
 
-	int int_value;	
-	float float_value;								
+	int int_value;								
 	char* name;									
 	struct block* block_ptr;
 	struct statement_node* one_statement;		
 	struct expression_node* expr;
 	struct else_if_helper* aux;
-	enum datatype* d_type;
-	struct indexes* indexing;
 
 
 };

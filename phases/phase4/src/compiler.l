@@ -6,21 +6,20 @@ extern struct symbol_table* lookup(char*);
 extern struct symbol_table* declare_variable(char*);
 extern int lineno;
 extern char* my_text;
-%}
 
-Exponent	[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?
+
+%}
 
 %%
 
 "decl"						{ return BEGIN_DECL;		/* need to change */			}
 "enddecl"					{ return END_DECL;											}
-"begin"						{ return PROGRAM_BEGIN;										}
-"end"  						{ return PROGRAM_END;										}
-"write"						{ return WRITE;	/* need to change */						}
+"begin"						{ return PROGRAM_BEGIN;												}
+"end"  						{ return PROGRAM_END;												}
+"write"						{ return WRITE;				}
+"read"						{ return READ;				}
 "integer" 					{ return INT; 												}
-"float"						{ return FLOAT; 											}
 [0-9][0-9]*     			{ yylval.int_value = atoi(yytext); return INT_NUMBER;		}
-{Exponent}					{ yylval.float_value = atof(yytext); return FLOAT_NUMBER;	}
 ";"							{ return TERMINATOR;										}
 "+" 						|
 "-" 						|
@@ -37,7 +36,6 @@ Exponent	[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?
 "if"						{ return IF;												}
 "else"						{ return ELSE;												}
 "for"						{ return FOR;												}
-"while"						{ return WHILE;												}
 "break"						{ return BREAK;												}
 "continue"					{ return CONTINUE;											}
 [a-zA-Z_][a-zA-Z0-9_]*		{  

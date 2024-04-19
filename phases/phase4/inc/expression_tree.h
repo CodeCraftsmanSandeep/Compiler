@@ -4,13 +4,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-
+void yyerror(char*);
 
 enum  expression_node_type{
 	VAR,
 	ARRAY_LOC,
 	NUM,
-	FLOAT_NUM,
 	UNARY_MINUS,
 	PLUS,  /* add operator */
 	MINUS,
@@ -29,45 +28,29 @@ enum  expression_node_type{
 	PRE_INCREMENT,		
 	PRE_DECREMENT		
 };
-
 enum  declaration_type{
 	VARIABLE,
 	ARRAY
 };
-
-
-// introduced new structure
-struct indexes{
-	struct expression_node* index;
-	struct indexes* next;
-};
-
-enum datatype{
-	INT_datatype,
-	FLOAT_datatype
-};
-
 struct symbol_table{
     char* name;
 	enum declaration_type type;
-	enum datatype type_of_var;    // new feild
-	int dimension;
-	struct indexes* sizes;	     
+	struct expression_node* size;
+    bool isInitialized;
     struct symbol_table* next;
 };
 
 
-// changes done in array_access
+
 struct array_access{
 	struct symbol_table* sym_ptr; 
-	struct indexes* index_ptr;
+	struct expression_node* index;
 };
 
 struct expression_node{
 	enum expression_node_type type;
 	union{
 		int number_value;
-		float float_number_value;
 		struct array_access* arr_ptr;
 		struct symbol_table* var_ptr;
 	};
@@ -87,7 +70,7 @@ struct expression_node* allot_expression_node(enum expression_node_type type, ..
 		case(ARRAY_LOC):
 			curr->arr_ptr = (struct array_access*)malloc(sizeof(struct array_access));
 			curr->arr_ptr->sym_ptr = va_arg(args, struct symbol_table*);
-			curr->arr_ptr->index_ptr = va_arg(args, struct indexes* );
+			curr->arr_ptr->index = va_arg(args, struct expression_node*);
 			break;
 
 		case(VAR):
@@ -96,10 +79,6 @@ struct expression_node* allot_expression_node(enum expression_node_type type, ..
 
 		case(NUM):
 			curr->number_value = va_arg(args, int);
-			break;
-
-		case(FLOAT_NUM):
-			curr->float_number_value = (float)(va_arg(args, double));
 			break;
 
 		case(UNARY_MINUS):
@@ -129,21 +108,12 @@ void inorder(struct expression_node* root){
 			printf(" %s ", root->var_ptr->name);
 			break;
 		case(ARRAY_LOC):
-			struct indexes* trav = root->arr_ptr->index_ptr;
-			printf(" (%s", root->arr_ptr->sym_ptr->name);
-			while(trav != NULL){
-				printf("[ ");
-				inorder(trav->index);
-				printf("] " );
-				trav = trav->next;
-			}
-			printf(" ) ");
+			printf(" (%s[", root->arr_ptr->sym_ptr->name);
+			inorder(root->arr_ptr->index);
+			printf("]) " );
 			break;
 		case(NUM):
 			printf(" %d ", root->number_value);
-			break;
-		case(FLOAT_NUM):
-			printf(" %f ", root->float_number_value);
 			break;
 		case(UNARY_MINUS):
 			/* storing expression as right child */
@@ -219,4 +189,76 @@ void inorder(struct expression_node* root){
 			printf(")");
 	}
 	return;
+}
+
+
+int get_expression_value(struct expression_node* root){
+	if(root == NULL) return 0;
+
+	switch(root->type){
+		case(VAR):
+			sprintf(error_string, "Compilation error: '%s' is not constant value\nglobal declarations size must be a constant value", root->var_ptr->name);
+			yyerror(error_string);
+			break;
+
+		case(ARRAY_LOC):
+			sprintf(error_string, "Compilation error: '%s' is not constant value\nglobal declarations size must be a constant value", root->arr_ptr->sym_ptr->name);
+			yyerror(error_string);
+
+		case(NUM):
+			return root->number_value;
+
+		case(UNARY_MINUS):
+			/* storing expression as right child */
+			return -1*get_expression_value(root->right);
+
+		case (POST_INCREMENT):
+			return get_expression_value(root->right) + 1;
+
+		case (POST_DECREMENT):
+			return get_expression_value(root->right) - 1;
+
+		case (PRE_INCREMENT):
+			return get_expression_value(root->right) + 1;
+
+		case (PRE_DECREMENT):
+			return get_expression_value(root->right) - 1;
+
+		default:
+			switch(root->type){
+				case(PLUS):
+					return  get_expression_value(root->left) + get_expression_value(root->right);
+
+				case(MINUS):
+					return  get_expression_value(root->left) - get_expression_value(root->right);
+
+				case(MUL):
+					return  get_expression_value(root->left) * get_expression_value(root->right);
+
+				case(DIV):
+					return  get_expression_value(root->left) / get_expression_value(root->right);
+
+				case(GT):
+					return  get_expression_value(root->left) > get_expression_value(root->right);
+
+				case(GTEQ):
+					return  get_expression_value(root->left) >= get_expression_value(root->right);
+
+				case(LT):
+					return  get_expression_value(root->left) < get_expression_value(root->right);
+					
+				case(LTEQ):
+					return  get_expression_value(root->left) <= get_expression_value(root->right);
+					
+				case(EQEQ):
+					return  get_expression_value(root->left) == get_expression_value(root->right);
+
+				case(NTEQ):
+					return  get_expression_value(root->left) != get_expression_value(root->right);
+
+				case(ASSIGN):
+					sprintf(error_string, "Compilation error: Assignment is not supported in declaration block");
+					yyerror(error_string);
+			}
+	}
 }

@@ -3,3 +3,8 @@ decl
     integer b[2];
     integer c[30], d, e[100];
 enddecl
+
+
+begin
+    write(2);
+end

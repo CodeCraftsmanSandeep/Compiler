@@ -4,29 +4,12 @@
 #include <string.h>
 #include <stdarg.h>
 
-enum statement_type{
-	DECLARATION,
-	EXPRESSION,
-	IF_STATEMENT,
-	FOR_STATEMENT,
-	BREAK_STATEMENT,
-	CONTINUE_STATEMENT,
-	PRINT_STATEMENT,
-	WHILE_STATEMENT
-};
-
-struct block{
-	struct statement_node* block_start;
-	struct statement_node* block_end;
-};
-struct block* allot_block(){
-	struct block* curr = (struct block*)malloc(sizeof(struct block));
-	curr->block_start = NULL;
-	curr->block_end = NULL;
-	return curr;
-};
 
 extern void inorder(struct expression_node* root);
+
+/*  A statemtent can be:
+	DECLARATION, ASSIGN, EXPRESSION, IF_STATEMENT, FOR_STATEMENT
+*/
 
 struct if_statement_node{
 	struct expression_node* condition;
@@ -51,30 +34,46 @@ struct if_statement_node* allot_if_statement_node(enum if_type type, struct bloc
 	return curr;
 }
 
+struct block{
+	struct statement_node* block_start;
+	struct statement_node* block_end;
+};
+struct block* allot_block(){
+	struct block* curr = (struct block*)malloc(sizeof(struct block));
+	curr->block_start = NULL;
+	curr->block_end = NULL;
+	return curr;
+};
 
+enum statement_type{
+	DECLARATION,
+	EXPRESSION,
+	IF_STATEMENT,
+	FOR_STATEMENT,
+	BREAK_STATEMENT,
+	CONTINUE_STATEMENT,
+	PRINT_STATEMENT,
+	READ_STATEMENT
+};
 struct statement_node{
 	enum statement_type type;
 	union{
 		struct symbol_table* decl_node;			/* if declaration statememt, points to symbol_table entry */
 		struct expression_node* expr_node;		/* expression (including assignment)*/
-		struct if_statement_node* if_node;		/* if_sttement pointer  */
+		struct if_statement_node* if_node;			/* if_sttement pointer  */
 		struct for_statement* for_node; 		/* for_statement pointer */
-		struct while_statement* while_node;		/* while statement */
 	};
 	struct statement_node* next;
 	struct statement_node* prev;
 };
 
 struct for_statement{
+	// expression ; expression ; expression
+	// note: an expression can be assignment (as in C/C++)
 	struct expression_node* expr1;
 	struct expression_node* expr2;
 	struct expression_node* expr3;
 
-	struct block* inside_block;
-};
-
-struct while_statement{
-	struct expression_node* expr;
 	struct block* inside_block;
 };
 
@@ -89,8 +88,8 @@ struct statement_node* allot_statement(enum statement_type type, ...){
 		if(decl_type == VARIABLE){
 			curr->decl_node = insert_entry(decl_type, name, NULL); /* symbol table */
 		}else if(decl_type == ARRAY){
-			struct indexes* sizes = va_arg(args, struct indexes*);
-			curr->decl_node = insert_entry(decl_type, name, sizes);
+			struct expression_node* size = va_arg(args, struct expression_node*);
+			curr->decl_node = insert_entry(decl_type, name, size);
 		}
 		va_end(args);
 	}else if(type == EXPRESSION){
@@ -121,15 +120,11 @@ struct statement_node* allot_statement(enum statement_type type, ...){
 		va_start(args, type);
 		curr->expr_node = va_arg(args, struct expression_node* );
 		va_end(args);
-	}else if(type == WHILE_STATEMENT){
-		struct while_statement* while_node = (struct while_statement*)malloc(sizeof(struct while_statement));
+	}else if(type == READ_STATEMENT){
 		va_list args;
 		va_start(args, type);
-		while_node->expr = va_arg(args, struct expression_node* );
-		while_node->inside_block = va_arg(args, struct block* );
+		curr->expr_node = va_arg(args, struct expression_node* );
 		va_end(args);
-
-		curr->while_node = while_node;
 	}
 
 	curr->next = NULL;
@@ -152,26 +147,11 @@ void print_root(struct block* root, char* tabs){
 
 	while(trav != NULL && trav->type == DECLARATION){
 		if(trav->decl_node->type == ARRAY){
-			if(trav->decl_node->type_of_var == INT_datatype){
-				printf("\tArray INT: %s (dimension = %d)\n", trav->decl_node->name, trav->decl_node->dimension);
-			}else{
-				printf("\tArray FLOAT: %s (dimension = %d)\n", trav->decl_node->name, trav->decl_node->dimension);
-			}
-			printf("\tSize: ");
-			struct indexes* ptr = trav->decl_node->sizes;
-			while(ptr != NULL){
-				inorder(ptr->index);
-				ptr = ptr->next;
-			}
-			printf("\n");
-
+			printf("\tArray		: %s (size = ", trav->decl_node->name);
+			inorder(trav->decl_node->size);
+			printf(" )\n");
 		}else if(trav->decl_node->type == VARIABLE){
-			if(trav->decl_node->type_of_var == INT_datatype){
-				printf("\tINT Variable	: %s\n", trav->decl_node->name);
-			}else{
-				printf("\tFLOAT Variable	: %s\n", trav->decl_node->name);
-			}
-			
+			printf("\tVariable	: %s\n", trav->decl_node->name);
 		}
 		trav = trav->next;
 	}
@@ -181,7 +161,7 @@ void print_root(struct block* root, char* tabs){
 
 	tabs = realloc(tabs, (strlen(tabs) + 2)*sizeof(char));
 	strcat(tabs, "\t");
-
+	// return;
 	while(trav != NULL ){
 		switch(trav->type){
 			case(BREAK_STATEMENT):
@@ -203,6 +183,13 @@ void print_root(struct block* root, char* tabs){
 			case(PRINT_STATEMENT):
 				printf("%s", tabs);
 				printf("PRINT : ");
+				inorder(trav->expr_node);
+				printf("\n");
+				break;
+			
+			case(READ_STATEMENT):
+				printf("%s", tabs);
+				printf("READ : ");
 				inorder(trav->expr_node);
 				printf("\n");
 				break;
@@ -245,15 +232,6 @@ void print_root(struct block* root, char* tabs){
 				printf("Expr3: "); inorder(trav->for_node->expr3); printf("\n");
 				print_root(trav->for_node->inside_block, strdup(tabs));
 				break;
-
-			case(WHILE_STATEMENT):
-				printf("%s", tabs);
-				printf("While\n");
-
-				printf("%s", tabs);
-				printf("Expr: "); inorder(trav->while_node->expr); printf("\n");
-				print_root(trav->while_node->inside_block, strdup(tabs));
-				break; 
 		}
 		trav = trav->next;
 	}

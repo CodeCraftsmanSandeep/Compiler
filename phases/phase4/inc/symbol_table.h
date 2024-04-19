@@ -1,31 +1,51 @@
+/*
+#ifndef  STDIO_INCLUDE
+
+#define STDIO_INCLUDE
+#include <stdio.h>
+#include <string.h>
+
+#endif
+
+*/
+
 extern int lineno;
 extern char error_string[];
 extern void yyerror(char*);
 #define max_entries 100
 int curr_entries = 0;
 extern void inorder(struct expression_node *);
+
+// enum  declaration_type{
+// 	VARIABLE,
+// 	ARRAY
+// };
+// struct symbol_table{
+//     char* name;
+// 	enum declaration_type type;
+// 	struct expression_node* size;
+//     bool isInitialized;
+//     struct symbol_table* next;
+// };
 struct symbol_table* head = NULL;
 
-struct symbol_table* allot_entry(enum declaration_type type, char* name, struct indexes* sizes){
+struct symbol_table* allot_entry(enum declaration_type type, char* name, struct expression_node* size){
 	struct symbol_table* curr = (struct symbol_table*)malloc(sizeof(struct symbol_table));
 	curr->name = strdup(name);
 	curr->type = type;
-	int count = 0;
-	struct indexes* trav = sizes;
-	while(trav != NULL){
-		count++;
-		trav = trav->next;
-	}
-	curr->dimension = count;
-	curr->sizes = sizes;
+
+	/* a variable has size pointer NULL */
+	curr->size = size;
+
+	curr->isInitialized = false;
 	curr->next = NULL;
 	return curr;
 }
 
-struct symbol_table* insert_entry(enum declaration_type type, char* name, struct indexes* sizes){
+struct symbol_table* insert_entry(enum declaration_type type, char* name, struct expression_node* size){
 	if(head == NULL){
 		curr_entries++;
-		head = allot_entry(type, name, sizes);
+		head = allot_entry(type, name, size);
 		return head;
 	}
 	struct symbol_table* prev = NULL;
@@ -43,29 +63,17 @@ struct symbol_table* insert_entry(enum declaration_type type, char* name, struct
 		yyerror("Maximum limit crossed in symbol_table");
     }
     curr_entries++;
-    prev->next = allot_entry(type, name, sizes);
+    prev->next = allot_entry(type, name, size);
     return prev->next;	
-}
+}	
 
-struct symbol_table* lookup(char* name, enum declaration_type type, ...){
+struct symbol_table* lookup(char* name, enum declaration_type type){
 	if(head == NULL){
 		sprintf(error_string, "Compilation error: Varaible '%s' is not declared", name);
 		yyerror(error_string);
 	}
 	struct symbol_table* prev = NULL;	
-	struct symbol_table* trav = head;
-
-	int d = 0;
-	va_list args;
-	va_start(args, type);
-	if(type == ARRAY){
-		struct indexes* indices = va_arg(args, struct indexes* );
-		while(indices != NULL){
-			d++;
-			indices = indices->next;
-		}
-	}
-	va_end(args);
+	struct symbol_table* trav = head; // traversal pointer
 
     while(trav != NULL){
 		if(strcmp(trav->name, name) == 0){
@@ -75,9 +83,6 @@ struct symbol_table* lookup(char* name, enum declaration_type type, ...){
 				}else{
 					sprintf(error_string, "Compilation error: '%s' is variable not array", name);
 				}
-				yyerror(error_string);
-			}else if(trav->dimension != d){
-				sprintf(error_string, "Compilation error: dimension of '%s' is %d, not %d ", name, trav->dimension, d);
 				yyerror(error_string);
 			}
 			return trav;
@@ -90,6 +95,7 @@ struct symbol_table* lookup(char* name, enum declaration_type type, ...){
     yyerror(error_string);
 }
 
+
 void printSymbolTable(){
 	if(head == NULL){
 		printf("\nEmpty symbol table\n");
@@ -99,25 +105,15 @@ void printSymbolTable(){
 	struct symbol_table* trav = head;
 	while(trav != NULL){
 		
-		if(trav->type == VARIABLE && trav->type_of_var == INT_datatype) printf("\tINT Variable '%s' ", trav->name);
-		else if(trav->type == VARIABLE && trav->type_of_var == FLOAT_datatype) printf("\tFLOAT Variable '%s' ", trav->name);
-		else if (trav->type_of_var == INT_datatype){
-			printf("\tArray INT: %s (dimension = %d)\n", trav->name, trav->dimension);
-			printf("\tSize: ");
-			struct indexes* ptr = trav->sizes;
-			while(ptr != NULL){
-				inorder(ptr->index);
-				ptr = ptr->next;
-			}
-		}else{
-			printf("\tArray FLOAT: %s (dimension = %d)\n", trav->name, trav->dimension);
-			printf("\tSize: ");
-			struct indexes* ptr = trav->sizes;
-			while(ptr != NULL){
-				inorder(ptr->index);
-				ptr = ptr->next;
-			}
+		if(trav->type == VARIABLE) printf("\tVariable '%s' ", trav->name);
+		else{
+			printf("\tArray		: %s (size = ", trav->name);
+			inorder(trav->size);
+			printf(")");
 		}
+		
+		// if(!trav->isInitialized) printf("uinitialised");
+		// else printf("initialised");
 		printf("\n");
 		
 		trav = trav->next;
@@ -125,3 +121,8 @@ void printSymbolTable(){
 	printf("------End of symbol table entries------\n");
 	return;
 }
+
+// Before test 2 you have to complete assignment 3
+// how to support context sensitive lanagauge ????????
+// test2 will be extension of project till assginement 3
+// after completetion extended to add datatypes in symbol table. (i.e using c++ templates )
