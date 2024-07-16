@@ -1,4 +1,4 @@
-# phase 3
+# phase 4
 
 1) Generating assembly code for MIPS <br/>
 2) Run the script file [qemu.sh](qemu.sh) to download the essentials for creating a sudo environment to simulate an environment to execute the MIPS assembly code. <br/>
