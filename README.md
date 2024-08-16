@@ -41,15 +41,14 @@ Makefile has all the commands to compile the codes in a phase. <br/>
 
 
 
-
+<!---
 ## What language does SCT support (language specification, constructs) ??
-
 
 ## What SCT does not support ??
 
 
 ## What are the possible exentsions to SCT ??
-
+---!>
 
 I am happy to receive any comments(if any) related to SCT. <br/>
 
