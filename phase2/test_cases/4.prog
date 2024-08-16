@@ -5,6 +5,12 @@ enddecl
 
 
 begin
+   a = - 2;
+   a = -2;
+   a = a - 2;
+   a = a-2;
+   a = a -2;
+   
     a = 2;
     if(a > 2){
         write(1);
