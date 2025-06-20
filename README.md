@@ -1,53 +1,156 @@
+# SCT – Simple Compiler Tool
 
-# SCT - Simple Compiler Tool
-This repositry contains compiler I built from scratch. Here after the compiler is called SCT(Simple Compiler Tool).<br/>
+SCT (Simple Compiler Tool) is a lightweight compiler framework built from scratch using Lex and Yacc. It currently supports a custom C-like language and is designed in three incremental phases, each adding new language constructs and compiler features.
 
-<!-- Synopsis <br/>	
-1) What language does SCT support (language specification, constructs) ??
-2) What SCT does not support ??
-3) What are the possible exentsions to SCT ??
-4) How can you use SCT ?? -->
+---
 
-Have a look on phases : <br/>
-	1) [phase1](phases/phase1) <br/>
-	2) [phase2](phases/phase2) <br/>
-	3) [phase3](phases/phase3) <br/>	
-	
-Each phase contains a detailed description of the constructs supported in respective readme files, test cases to evaluate, source code, include files, Makefile. The description is not repeated here to avoid redundancy which may lead to inconsistency (as happens many a times). <br/>
+## Table of Contents
 
-## Structure of each phase
-inc repo contains all include files (headers). <br/>
-src repo contains source code (compiler.l, compiler.y) <br/>
-bin repo is used to generate the output files after make all ([see below](##how-can-you-use-sct)) <br/>
-Makefile contains all needed commands to compiler ([see below](##how-can-you-use-sct)) <br/>
+1. [Features](#features)
+2. [Language Specification](#language-specification)
+3. [Project Structure](#project-structure)
+4. [Usage](#usage)
+5. [Compiler Phases](#compiler-phases)
+6. [Extensions & Roadmap](#extensions--roadmap)
+7. [Contributing](#contributing)
+8. [License](#license)
 
-## How one can use SCT ??
-Use Makefile <br/>
-Makefile has all the commands to compile the codes in a phase. <br/>
+---
 
-		INCLUDE=-I./inc/
-	all :
-		yacc -o bin/y.tab.c -d src/compiler.y -ll 
-		lex -o bin/lex.yy.c src/compiler.l 
-		gcc ${INCLUDE} bin/lex.yy.c bin/y.tab.c -ll -lm -o bin/compiler.out
-		
-	clean:
-		rm bin/lex.yy.c bin/y.tab.c bin/y.tab.h bin/compiler.out
-		
-**$ make all** creates a final executable compiler.out in bin repo. <br/>
-**$ make clean removes** the contents generated which are generated in bin repo. <br/>
-**$ ./bin/compiler.out will** execute the executable. <br/>
+## Features
 
+* **Lexical Analysis**: Implemented with Flex to tokenize identifiers, keywords, literals, and operators.
+* **Syntax Analysis**: Grammar rules defined in Yacc/Bison for parsing expressions, statements, and declarations.
+* **AST Generation**: Builds an Abstract Syntax Tree for semantic analysis and potential code generation.
+* **Error Handling**: Reports syntax and semantic errors with line numbers.
+* **Modular Design**: Separate include, source, and binary directories for clean organization.
 
+---
 
-<!---
-## What language does SCT support (language specification, constructs) ??
+## Language Specification
 
-## What SCT does not support ??
+SCT’s language is a simplified, C-inspired language that supports:
 
+* **Data Types**: `int`, `float`, `char`, and arrays thereof.
+* **Control Flow**: `if`, `else`, `while`, `for`, and `return`.
+* **Operators**: Arithmetic (`+`, `-`, `*`, `/`, `%`), relational (`<`, `>`, `<=`, `>=`, `==`, `!=`), logical (`&&`, `||`, `!`).
+* **Functions**: Definition and calls with parameter passing.
+* **Composite Constructs**: Structs, nested blocks, and scope management.
 
-## What are the possible exentsions to SCT ??
----!>
+### Unsupported & Future Plans
 
-I am happy to receive any comments(if any) related to SCT. <br/>
+* **Unsupported**: Pointers, dynamic memory allocation, floating-point precision control, and optimization passes.
+* **Planned Extensions**: Code generation to x86\_64 assembly, optimization (constant folding, dead code elimination), and support for pointers and function pointers.
 
+---
+
+## Project Structure
+
+```text
+├── inc/              # Header files for shared definitions
+├── src/              # Source files (compiler.l, compiler.y)
+├── bin/              # Generated binaries and intermediate files
+├── phases/           # Phase-specific directories with detailed READMEs
+│   ├── phase1/       # Basic expressions, statements, symbol table
+│   ├── phase2/       # Functions, compound types, enhanced AST
+│   └── phase3/       # Advanced constructs and error recovery
+├── Makefile          # Build and clean directives
+└── README.md         # This file
+```
+
+---
+
+## Usage
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/CodeCraftsmanSandeep/Compiler.git
+   cd Compiler
+   ```
+
+2. **Build**
+
+   ```bash
+   make all
+   ```
+
+   This will:
+
+   * Run `yacc` on `src/compiler.y` to generate parser code.
+   * Run `lex` on `src/compiler.l` to generate scanner code.
+   * Compile both with `gcc` into `bin/compiler.out`.
+
+3. **Clean**
+
+   ```bash
+   make clean
+   ```
+
+   Removes generated `.c`, `.h`, and the executable.
+
+4. **Run**
+
+   ```bash
+   ./bin/compiler.out < source_file.sct > output.ast
+   ```
+
+   * Reads input `.sct` source files
+   * Prints AST or error messages to stdout
+
+---
+
+## Compiler Phases
+
+Each phase adds new language features and improvements. Detailed descriptions, test cases, and code are in `phases/phaseX`.
+
+1. **Phase 1** – *Lexing & Parsing Basics*:
+
+   * Token definitions, grammar rules for expressions and simple statements.
+   * Symbol table for variable declarations and type checking.
+
+2. **Phase 2** – *Functions & Scopes*:
+
+   * Support for function definitions and calls.
+   * Nested scopes and block-level symbol management.
+   * AST enhancements for control flow.
+
+3. **Phase 3** – *Advanced Constructs & Error Recovery*:
+
+   * Structs, arrays, and complex type checking.
+   * Improved error detection and recovery strategies.
+   * Preparations for code generation and optimizations.
+
+---
+
+## Extensions & Roadmap
+
+* **Code Generation**: Emit x86\_64 or LLVM IR for compiled code execution.
+* **Optimizations**: Constant folding, inline expansions, dead code elimination.
+* **Pointer Support**: Add pointers, pointer arithmetic, and memory management.
+* **Integrated Testing**: Automated test harness for regression testing.
+* **Interpreted Mode**: Offer an interpreter fallback for rapid prototyping.
+
+---
+
+## Contributing
+
+Contributions, issues, and feature requests are welcome! Please:
+
+1. Fork the repo
+2. Create a feature branch (`git checkout -b feature/YourFeature`)
+3. Commit your changes (`git commit -m "Add your message"`)
+4. Push to the branch (`git push origin feature/YourFeature`)
+5. Open a Pull Request
+
+Please follow the project’s coding style and include test cases for new features.
+
+---
+
+## License
+
+This project is released under the [MIT License](LICENSE).
+
+---
+
+© 2025 Sandeep Reddy — Built with passion & Lex/Yacc magic!
